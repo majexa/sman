@@ -5,8 +5,7 @@ class DigitaloceanMy {
   public $api;
 
   function __construct() {
-    $this->api =  new DigitaloceanApiCached;
-    $this->api->asd();
+    $this->api = new DigitaloceanApiCached;
   }
 
   function create() {
