@@ -1,11 +1,10 @@
 <?php
 
 /**
- * @method void api($uri, $data)
+ * @method void api($uri, array $data = [])
  * @method void createServer($name, $opts)
  * @method void servers()
- * @method void _destroyServer($id)
- * @method void destroyDroplet($name)
+ * @method void destroyServer($id)
  */
 class DigitaloceanApiCached extends ObjectCacher {
 
@@ -15,7 +14,15 @@ class DigitaloceanApiCached extends ObjectCacher {
 
   function cachedMethods() {
     return [
-      'servers'
+      'servers',
+      'sshKeys'
+    ];
+  }
+
+  function cleanupMethods() {
+    return [
+      'createServer' => ['servers'],
+      'createSshKey' => ['sshKeys']
     ];
   }
 

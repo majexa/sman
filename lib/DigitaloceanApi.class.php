@@ -11,28 +11,35 @@ class DigitaloceanApi {
   }
 
   function createServer($name, array $opts = []) {
-    $r = [
+    return $this->api('droplets/new', array_merge([
       'size_id'   => 66,
       'image_id'  => 284211,
       'region_id' => 2,
       'name'      => $name
-    ];
-    if (!empty($opts['sshKeys'])) {
-      $r['ssh_key_ids'] = implode(',', Arr::filterBySubValues($this->api('ssh_keys')['ssh_keys'], 'id', 'name', $opts['sshKeys']));
-    }
-    return $this->api('droplets/new', $r);
+    ], $opts));
+  }
+
+  function createSshKey($name, $sshKey) {
+    return $this->api('ssh_keys/new', [
+      'name' => $name,
+      'ssh_pub_key' => $sshKey
+    ]);
   }
 
   function servers() {
     return $this->api('droplets')['droplets'];
   }
 
-  function _destroyServer($id) {
+  function destroyServer($id) {
     return $this->api("droplets/$id/destroy");
   }
 
-  function destroyDroplet($name) {
-    foreach ($this->servers() as $v) if ($v['name'] == $name) $this->_destroyServer($v['id']);
+  function sshKeys() {
+    return $this->api('ssh_keys')['ssh_keys'];
+  }
+
+  function destroySshKey($id) {
+    $this->api("ssh_keys/$id/destroy");
   }
 
 }
