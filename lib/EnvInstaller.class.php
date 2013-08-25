@@ -1,6 +1,6 @@
 <?php
 
-$n = 6;
+$n = '';
 define('DNS_MASTER', "dnsMaster$n");
 define('DNS_SLAVE', "dnsSlave$n");
 define('PROJECTS1', "projects1$n");
@@ -15,13 +15,6 @@ class EnvInstaller {
   }
 
   protected $_servers = [DNS_MASTER, DNS_SLAVE, PROJECTS1];
-
-  protected $addSshKeys = [
-// этот ↓ сервер будет доступен с этих ↓ серверов без пароля
-    DNS_SLAVE  => [DNS_MASTER, PROJECTS1],
-    DNS_MASTER => [GIT, DNS_SLAVE],
-    PROJECTS1 => [GIT]
-  ];
 
   function create() {
     foreach ($this->_servers as $v) $this->createServer($v);
@@ -41,26 +34,26 @@ class EnvInstaller {
 
   function createServer($server) {
     output("Creating server '$server'");
-    $this->api->createServer($server, !isset($this->addSshKeys[$server]) ? [] : [
-      'ssh_key_ids' => $this->sshKeyIds($this->addSshKeys[$server])
-    ]);
+    $this->api->createServer($server);
     output("Waiting for server is active");
     while (true) {
       if ($this->api->server($server)['status'] == 'active') break;
       sleep(5);
     }
-    return;
-    $password = $this->getPassFromMail($server);
-    $this->copyLocalSshKey($server, $password);
-    $this->createSshKey($server);
+    $this->storePassFromMail($server);
+    $config = "StrictHostKeyChecking=no\nLogLevel=quiet\nUserKnownHostsFile=/dev/null";
+    $this->cmd($server, "echo '$config' > ~/.ssh/config");
   }
 
   function destroyServer($server) {
     $this->api->destroyServer($server);
     Config::removeSubVar(DATA_PATH.'/passwords.php', $server);
+    output("Waiting for server is removed");
+    while ($this->api->server($server, false)) sleep(5);
+    output("Removed");
   }
 
-  protected function getPassFromMail($server) {
+  protected function storePassFromMail($server) {
     output("Waiting for mail");
     $foundFile = $found = false;
     $serverIp = $this->api->server($server)['ip_address'];
@@ -85,18 +78,8 @@ class EnvInstaller {
       }
     }
     if (!$found) throw new Exception("Mail for server IP=$serverIp not found");
-    Config::updateSubVar(include DATA_PATH.'/passwords.php', $server, $password);
+    Config::updateSubVar(DATA_PATH.'/passwords.php', $server, $password);
     unlink($foundFile);
-    return $password;
-  }
-
-  function createSshKey($server) {
-    output("Generating ssh key on '$server'");
-    $this->genSshKey($server);
-    output("Getting ssh key from '$server'");
-    $sshKey = $this->getSshKey($server);
-    output("Adding ssh key to DigitalOcean");
-    $this->api->createSshKey($server, $sshKey);
   }
 
   function servers() {
@@ -107,43 +90,16 @@ class EnvInstaller {
     return $r;
   }
 
-  /**
-   * Копирует локальный публичный ssh-ключ на $server
-   *
-   * @param string Имя сервера
-   */
-  function copyLocalSshKey($server, $password = null) {
-    output("Copy ssh key from 'installer' to '$server'");
-    if ($password) {
-      sys("sshpass -p '$password' ssh-copy-id -i ~/.ssh/id_rsa.pub {$this->api->server($server)['ip_address']}");
-    } else {
-      sys("ssh-copy-id -i ~/.ssh/id_rsa.pub {$this->api->server($server)['ip_address']}");
-    }
+  function getCmd($server, $cmd) {
+    $password = Config::getFileVar(DATA_PATH.'/passwords.php', false)[$server];
+    Misc::checkEmpty($password);
+    $s = $this->api->server($server);
+    if (strstr($cmd, "\n")) $cmd = "<< EOF\n$cmd\nEOF";
+    return "sshpass -p '$password' ssh {$s['ip_address']} $cmd";
   }
 
-  function genSshKey($server) {
-    system("ssh {$this->api->server($server)['ip_address']} \"ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ''\"");
-  }
-
-  function getSshKey($server) {
-    system("scp {$this->api->server($server)['ip_address']}:~/.ssh/id_rsa.pub ~/temp/$server.pub");
-    return file_get_contents("/root/temp/$server.pub");
-  }
-
-  // ------------------------
-
-  function installDnsMaster() {
-sys("ssh {$this->api->server(DNS_MASTER)} << EOF
-  apt-get -y install git-core
-  git clone ssh://{$this->api->server(GIT)}/~/repo/dns-server.git
-  cd dns-server
-  sed -i \"s/read slave/slave='{$this->api->server(DNS_SLAVE)}'/\" install.sh
-  # remove ssh key generation and copy (from master to slave). already done above
-  sed -i \"s/^ssh-keygen.*$//\" install.sh
-  sed -i \"s/^cat ~\\/\\.ssh.*$//\" install.sh
-    ./install.sh
-EOF
-");
+  function cmd($server, $cmd) {
+    sys($this->getCmd($server, $cmd));
   }
 
 }
