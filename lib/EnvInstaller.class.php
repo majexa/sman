@@ -90,16 +90,34 @@ class EnvInstaller {
     return $r;
   }
 
-  function getCmd($server, $cmd) {
+  function sshpass($server) {
     $password = Config::getFileVar(DATA_PATH.'/passwords.php', false)[$server];
     Misc::checkEmpty($password);
+    return "sshpass -p '$password'";
+  }
+
+  function getCmd($server, $cmd) {
     $s = $this->api->server($server);
     if (strstr($cmd, "\n")) $cmd = "<< EOF\n$cmd\nEOF";
-    return "sshpass -p '$password' ssh {$s['ip_address']} $cmd";
+    return $this->sshpass($server)." ssh {$s['ip_address']} $cmd";
   }
 
   function cmd($server, $cmd) {
     sys($this->getCmd($server, $cmd));
   }
+
+  function genSshKey($server) {
+    $this->cmd($server, "\"ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ''\"");
+  }
+
+  function getSshKey($server) {
+    sys($this->sshpass($server)." scp {$this->api->server($server)['ip_address']}:~/.ssh/id_rsa.pub ~/temp/$server.pub");
+    return file_get_contents("/root/temp/$server.pub");
+  }
+
+  function uploadSshKey($sshKey, $server) {
+    sys("scp {$this->api->server($server)['ip_address']}:~/.ssh/id_rsa.pub ~/temp/$server.pub");
+  }
+
 
 }
