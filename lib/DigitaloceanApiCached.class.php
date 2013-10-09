@@ -4,7 +4,7 @@
  * @method void api($uri, array $data = [])
  * @method void createServer($name, $opts)
  * @method void servers()
- * @method void destroyServer($id)
+ * @method void deleteServer($id)
  */
 class DigitaloceanApiCached extends ObjectCacher {
 

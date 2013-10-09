@@ -20,9 +20,9 @@ class Digitalocean extends ObjectMapper {
     return $r;
   }
 
-  function destroyServer($server) {
-    $this->api->destroyServer($this->server($server)['id']);
-    if (($sshKeyId = $this->sshKeyId($server))) $this->api->destroySshKey($sshKeyId);
+  function deleteServer($server) {
+    $this->api->deleteServer($this->server($server)['id']);
+    if (($sshKeyId = $this->sshKeyId($server))) $this->api->deleteSshKey($sshKeyId);
   }
 
   function sshKeyId($server) {

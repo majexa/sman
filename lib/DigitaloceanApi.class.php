@@ -30,7 +30,7 @@ class DigitaloceanApi {
     return $this->api('droplets')['droplets'];
   }
 
-  function destroyServer($id) {
+  function deleteServer($id) {
     return $this->api("droplets/$id/destroy");
   }
 
@@ -38,7 +38,7 @@ class DigitaloceanApi {
     return $this->api('ssh_keys')['ssh_keys'];
   }
 
-  function destroySshKey($id) {
+  function deleteSshKey($id) {
     $this->api("ssh_keys/$id/destroy");
   }
 
