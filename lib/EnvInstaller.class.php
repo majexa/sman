@@ -229,6 +229,11 @@ apt-get update
 add-apt-repository --yes ppa:ondrej/php5-oldstable
 apt-get update
 apt-get -y install php5-cli
+apt-get install php-pear
+sudo pear channel-discover pear.phpunit.de
+pear install phpunit/PHPUnit
+export DEBIAN_FRONTEND=noninteractive
+apt-get -y install postfix
 CMD
 );
   }

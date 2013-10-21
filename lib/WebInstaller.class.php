@@ -46,9 +46,6 @@ apt-get -y install mysql-server
 apt-get -y install memcached
 apt-get -y install imagemagick
 /etc/init.d/php5-fpm restart
-apt-get install php-pear
-sudo pear channel-discover pear.phpunit.de
-pear install phpunit/PHPUnit
 
 cd /tmp
 echo -e "deb http://www.rabbitmq.com/debian/ testing main" >> /etc/apt/sources.list
@@ -59,7 +56,6 @@ apt-get install rabbitmq-server
 pecl install amqp
 echo -e "extension=amqp.so" > /etc/php5/conf.d/amqp.ini
 
-apt-get -y install postfix
 CMD;
     # install piwik
     $this->ei->cmdFile($this->name, "\n".$cmd);

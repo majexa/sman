@@ -19,7 +19,7 @@ class DnsInstaller {
     $this->ei->createServer('dnsMaster');
     $this->ei->installPhp('dnsMaster');
     $this->ei->cmd(DNS_MASTER, 'apt-get -y install git-core, bind9');
-    $this->ei->cmd(DNS_MASTER, "rm -r ~/dns-server");
+    $this->ei->cmd(DNS_MASTER, "rm -r ~/ngn-env");
     $this->ei->cmd(DNS_MASTER, "git clone ssh://{$this->ei->api->server(GIT)['ip_address']}/~/repo/dns-server.git");
     $this->ei->addSshKey('dnsMaster', 'dnsSlave');
     $this->ei->cmd(DNS_MASTER, <<<CMD
@@ -28,6 +28,11 @@ sed -i "s/read slave/slave='{$this->ei->api->server(DNS_SLAVE)['ip_address']}'/"
 sed -i "s/^ssh-keygen.*$//" install.sh
 sed -i "s/^cat ~\\/\\.ssh.*$//" install.sh
 ./install.sh
+export DEBIAN_FRONTEND=noninteractive
+apt-get -y install postfix
+apt-get install php-pear
+sudo pear channel-discover pear.phpunit.de
+pear install phpunit/PHPUnit
 CMD
 );
     $this->updateConfig();
