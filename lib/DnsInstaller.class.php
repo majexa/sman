@@ -30,7 +30,6 @@ sed -i "s/^cat ~\\/\\.ssh.*$//" install.sh
 ./install.sh
 export DEBIAN_FRONTEND=noninteractive
 apt-get -y install postfix
-apt-get install php-pear
 sudo pear channel-discover pear.phpunit.de
 pear install phpunit/PHPUnit
 CMD

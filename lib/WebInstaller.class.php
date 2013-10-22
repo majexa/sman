@@ -31,7 +31,7 @@ mkdir /home/user && chown user /home/user
 apt-get -y install sudo
 echo '%user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 apt-get update
-apt-get -y install php5-fpm php5-gd php5-mysql php5-curl php5-memcached php-pear php5-dev
+apt-get -y install php5-fpm php5-gd php5-mysql php5-dev
 apt-get -y install git-core
 apt-get -y install nginx
 cd /etc/nginx

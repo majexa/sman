@@ -228,7 +228,7 @@ apt-get -y install python-software-properties
 apt-get update
 add-apt-repository --yes ppa:ondrej/php5-oldstable
 apt-get update
-apt-get -y install php5-cli
+apt-get -y install php5-cli php5-curl php5-memcached php-pear
 apt-get install php-pear
 sudo pear channel-discover pear.phpunit.de
 pear install phpunit/PHPUnit
