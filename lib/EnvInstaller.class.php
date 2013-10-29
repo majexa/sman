@@ -152,11 +152,15 @@ CMD
 
   function cmd($server, $cmd) {
     $cmd = str_replace("\r", "\n", $cmd);
-    //output("$server: $cmd");
+    if ($server == 'local') return sys($cmd);
     return sys($this->getCmd($server, $cmd));
   }
 
   function cmdFile($server, $cmd) {
+    if ($server == 'local') {
+      return sys($cmd);
+      return;
+    }
     file_put_contents("/root/temp/$server-install", trim($cmd));
     $this->cmd($server, "mkdir -p ~/temp");
     sys($this->sshpass($server)." scp ~/temp/$server-install {$this->api->server($server)['ip_address']}:~/temp/$server-install");
@@ -228,8 +232,7 @@ apt-get -y install python-software-properties
 apt-get update
 add-apt-repository --yes ppa:ondrej/php5-oldstable
 apt-get update
-apt-get -y install php5-cli php5-curl php5-memcached php-pear
-apt-get install php-pear
+apt-get -y install php5-cli php5-curl php5-memcached php-pear php5-fpm php5-gd php5-mysql php5-dev
 sudo pear channel-discover pear.phpunit.de
 pear install phpunit/PHPUnit
 export DEBIAN_FRONTEND=noninteractive

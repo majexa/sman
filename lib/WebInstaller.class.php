@@ -19,6 +19,10 @@ class WebInstaller {
     return $string;
   }
 
+  function usuck() {
+    
+  }
+
   function installSoft() {
     $pass = $this->randString(10);
     $this->ei->cmd($this->name, 'apt-get -y install mc');
@@ -31,8 +35,13 @@ mkdir /home/user && chown user /home/user
 apt-get -y install sudo
 echo '%user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 apt-get update
-apt-get -y install php5-fpm php5-gd php5-mysql php5-dev
 apt-get -y install git-core
+debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password password $pass'
+debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password_again password $pass'
+apt-get -y install mysql-server
+apt-get -y install memcached
+apt-get -y install imagemagick
+/etc/init.d/php5-fpm restart
 apt-get -y install nginx
 cd /etc/nginx
 sed -i "s/^\s*#.*$//g" nginx.conf
@@ -40,13 +49,6 @@ sed -i "/^\s*$/d" nginx.conf
 sed -i "s|^\s*include /etc/nginx/sites-enabled/\*;|\tserver_names_hash_bucket_size 64;\\n\tinclude /home/user/ngn-env/config/nginxProjects/\*;\\n\tinclude /home/user/ngn-env/config/nginx/*;|g" nginx.conf
 sed -i "s|www-data|user|g" nginx.conf
 sed -i "s|www-data|user|g" /etc/php5/fpm/pool.d/www.conf
-debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password password $pass'
-debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password_again password $pass'
-apt-get -y install mysql-server
-apt-get -y install memcached
-apt-get -y install imagemagick
-/etc/init.d/php5-fpm restart
-
 cd /tmp
 echo -e "deb http://www.rabbitmq.com/debian/ testing main" >> /etc/apt/sources.list
 wget http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
@@ -57,7 +59,7 @@ pecl install amqp
 echo -e "extension=amqp.so" > /etc/php5/conf.d/amqp.ini
 
 CMD;
-    # install piwik
+    // @todo install piwik here
     $this->ei->cmdFile($this->name, "\n".$cmd);
   }
 
