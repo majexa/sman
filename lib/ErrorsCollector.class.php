@@ -1,5 +1,7 @@
 <?php
 
+// php ~/run/run.php "(new ErrorsCollector)->run()" NGN_ENV_PATH/manager/init.php
+
 class ErrorsCollector {
 
   function __construct() {

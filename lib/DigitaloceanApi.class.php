@@ -1,19 +1,23 @@
 <?php
 
 class DigitaloceanApi {
+  use DebugOutput;
 
   public $outputResult = false;
 
   function api($uri, array $data = []) {
-    $r = json_decode(file_get_contents("https://api.digitalocean.com/$uri?client_id=aeOp6fwVrvbS0Sijbyj7A&api_key=WrgjH5DimPjU1NdG00VPWOR2vpShoRKoBZREHO2uD&".http_build_query($data)), true);
+    $r = (new Curl)->get("https://api.digitalocean.com/$uri?client_id=aeOp6fwVrvbS0Sijbyj7A&api_key=WrgjH5DimPjU1NdG00VPWOR2vpShoRKoBZREHO2uD&".http_build_query($data));
+    $r = json_decode($r, true);
+    if ($r['status'] == 'ERROR') throw new Exception('DigitalOcean: '.$r['error_message']);
     if ($this->outputResult) print_r($r);
     return $r;
   }
 
   function createServer($name, array $opts = []) {
+    $this->output("Creating server '$name'");
     return $this->api('droplets/new', array_merge([
       'size_id'   => 66,
-      'image_id'  => 284211,
+      'image_id'  => 1505447,
       'region_id' => 2,
       'name'      => $name
     ], $opts));

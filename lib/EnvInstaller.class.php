@@ -7,13 +7,26 @@ define('PROJECTS1', "projects1$n");
 define('GIT', 'git');
 
 class EnvInstaller {
+  use DebugOutput;
 
+  protected function isDebug() {
+    return true;
+  }
+
+  /**
+   * @var Digitalocean
+   */
   public $api;
+
+  protected $tempFolder;
 
   function __construct() {
     $this->api = new Digitalocean;
+    $this->tempFolder = DATA_PATH.'/temp';
+    Dir::make($this->tempFolder);
   }
 
+  /*
   protected $_servers = [DNS_MASTER, DNS_SLAVE, PROJECTS1];
 
   function create() {
@@ -23,6 +36,7 @@ class EnvInstaller {
   function delete() {
     foreach ($this->servers() as $v) $this->api->deleteServer($v['id']);
   }
+  */
 
   static $mailUser = 'bot';
 
@@ -33,27 +47,26 @@ class EnvInstaller {
   }
 
   function createServer($server) {
-    output("Creating server '$server'");
     $this->api->createServer($server);
-    output("Waiting for server is active");
+    $this->output("Waiting for server is active");
     while (true) {
       if ($this->api->server($server)['status'] == 'active') break;
       sleep(5);
     }
     $this->storePassFromMail($server);
-    output("Wait 30 sec");
+    $this->output("Wait 30 sec");
     sleep(30); // need to try connection here
-    $this->addSshKey($server, 'git');
+    $this->addSshKey($server, 'git', 'root');
   }
 
   function configSsh($server, $dir) {
-    output("Configuring server '$server'");
+    $this->output("Configuring SSH on server '$server'");
     $config = "StrictHostKeyChecking=no\nLogLevel=quiet\nUserKnownHostsFile=/dev/null";
     $this->cmd($server, <<<CMD
-if grep -q StrictHostKeyChecking=no $dir/.ssh/config; then
+if grep -q StrictHostKeyChecking=no ~/.ssh/config; then
   echo 'Already installed'
 else
-  echo '$config' > $dir/.ssh/config
+  echo '$config' > ~/.ssh/config
 fi
 CMD
     );
@@ -63,15 +76,15 @@ CMD
     $exists = $this->api->server($server, false);
     if ($strict and !$exists) throw new Exception("Server '$server' not exists");
     if (!$exists) {
-      output("Server '$server' not exists. Skipped");
+      $this->output("Server '$server' not exists. Skipped");
       return;
     }
     $this->api->deleteServer($server);
     $this->removeSshKey($server, 'git');
     Config::removeSubVar(DATA_PATH.'/passwords.php', $server);
-    output("Waiting for server is removed");
+    $this->output("Waiting for server is removed");
     while ($this->api->server($server, false)) sleep(5);
-    output("Removed");
+    $this->output("Removed");
   }
 
   function findMailFiles($server) {
@@ -83,7 +96,7 @@ CMD
         $fileName = basename($file);
         try {
           $d = (new MailMimeParser)->decode(['File' => $file]);
-          $subj  =$d[0]['Headers']['subject:'];
+          $subj = $d[0]['Headers']['subject:'];
           $body = $d[0]['Body'];
         } catch (Exception $e) {
           throw new Exception("Error while parsing file '$file'");
@@ -92,15 +105,15 @@ CMD
         $p2 = '/.*Password: (\w+).*/s';
         $p3 = '/.*\((\w+)\) - DigitalOcean.*/';
         if (!preg_match($p1, $body)) {
-          output('Skipped '.$fileName.'. Wrong body format. Expected "IP Address: ..."');
+          $this->output('Skipped '.$fileName.'. Wrong body format. Expected "IP Address: ..."');
           continue;
         }
         if (!preg_match($p2, $body)) {
-          output('Skipped '.$fileName.'. Wrong body format. Expected "Password: ..."');
+          $this->output('Skipped '.$fileName.'. Wrong body format. Expected "Password: ..."');
           continue;
         }
         if (!preg_match($p3, $subj)) {
-          output('Skipped '.$fileName.'. Wrong subject format. Expected "(serverName) - DigitalOcean"');
+          $this->output('Skipped '.$fileName.'. Wrong subject format. Expected "(serverName) - DigitalOcean"');
           continue;
         }
         $mServerIp = preg_replace($p1, '$1', $body);
@@ -108,8 +121,8 @@ CMD
         if ($server != $mServer) continue;
         if ($serverIp != $mServerIp) continue;
         $r[] = [
-          'file' => $file,
-          'ip' => $mServerIp,
+          'file'     => $file,
+          'ip'       => $mServerIp,
           'password' => preg_replace($p2, '$1', $body)
         ];
       }
@@ -118,7 +131,7 @@ CMD
   }
 
   protected function storePassFromMail($server) {
-    output("Waiting for mail");
+    $this->output("Waiting for mail");
     $files = $this->findMailFiles($server);
     if (count($files) == 0) throw new Exception("Mail for server '$server' not found");
     if (count($files) > 1) throw new Exception("Can not be more than 1 email for server '$server'");
@@ -126,6 +139,7 @@ CMD
     unlink($files[0]['file']);
   }
 
+  /*
   function servers() {
     $r = [];
     foreach ($this->api->servers() as $v) {
@@ -133,6 +147,7 @@ CMD
     }
     return $r;
   }
+  */
 
   function password($server) {
     $password = Config::getFileVar(DATA_PATH.'/passwords.php', false)[$server];
@@ -161,24 +176,27 @@ CMD
       return sys($cmd);
       return;
     }
-    file_put_contents("/root/temp/$server-install", trim($cmd));
-    $this->cmd($server, "mkdir -p ~/temp");
-    sys($this->sshpass($server)." scp ~/temp/$server-install {$this->api->server($server)['ip_address']}:~/temp/$server-install");
-    $this->cmd($server, "chmod +x ~/temp/$server-install");
-    $this->cmd($server, "~/temp/$server-install");
+    file_put_contents("{$this->tempFolder}/$server-install", trim($cmd));
+    $this->cmd($server, "mkdir -p {$this->tempFolder}");
+    sys($this->sshpass($server)." scp {$this->tempFolder}/$server-install {$this->api->server($server)['ip_address']}:{$this->tempFolder}/$server-install");
+    $this->cmd($server, "chmod +x {$this->tempFolder}/$server-install");
+    $this->cmd($server, "{$this->tempFolder}/$server-install");
   }
 
   function addSshKey($fromServer, $toServer, $user = null) {
     if ($this->sshKeyIsInAuthorized($fromServer, $toServer, $user)) return;
     $this->genSshKey($fromServer, $user);
     $sshKey = $this->getSshKey($fromServer, $user);
-    output("Adding ssh key from '$fromServer' to '$toServer'");
+    $this->output("Adding SSH key from '$fromServer' to '$toServer'");
     $this->uploadSshKey($sshKey, $toServer);
   }
 
   function sshKeyIsInAuthorized($fromServer, $toServer, $user = null) {
+    $this->output("Check SSH key for server '$fromServer' at '$toServer'");
     $sshKey = $this->getSshKey($fromServer, $user);
-    return (bool)$this->cmd($toServer, "'grep \"$sshKey\" ~/.ssh/authorized_keys'");
+    $r = (bool)$this->cmd($toServer, "'grep \"$sshKey\" ~/.ssh/authorized_keys'");
+    $this->output("SSH key ".($r ? 'already exists' : 'does not exists'));
+    return $r;
   }
 
   function removeSshKey($fromServer, $toServer, $user = null) {
@@ -187,7 +205,7 @@ CMD
 grep -v "$sshKey" ~/.ssh/authorized_keys > ~/.ssh/authorized_keys_tmp
 mv ~/.ssh/authorized_keys_tmp ~/.ssh/authorized_keys
 CMD
-);
+    );
   }
 
   function addLocalSshKey($toServer) {
@@ -205,20 +223,21 @@ CMD
   ssh-keygen -q -f ~/.ssh/id_rsa -t rsa -N ''
 fi
 CMD
-);
+    );
   }
 
   protected $getSshKeyCache;
 
-  function getSshKey($server, $user = null) {
+  function getSshKey($server, $user = 'root') {
     if ($this->getSshKeyCache[$server.$user]) return $this->getSshKeyCache[$server.$user];
-    $dir = $user ? "/home/$user" : '/root';
+    $dir = $user == 'root' ? '/root' : "/home/$user";
     $this->configSsh($server, $dir);
     $this->genSshKey($server, $user);
-    output("Getting ssh key from '$server'");
-    print sys($this->sshpass($server)." scp {$this->api->server($server)['ip_address']}:$dir/.ssh/id_rsa.pub /root/temp/$server.pub");
-    $r = file_get_contents("/root/temp/$server.pub");
-    File::delete("/root/temp/$server.pub");
+    $this->output("Getting SSH key from '$server'");
+    print sys($this->sshpass($server)." scp {$this->api->server($server)['ip_address']}:$dir/.ssh/id_rsa.pub {$this->tempFolder}/$server.pub");
+    $r = file_get_contents("{$this->tempFolder}/$server.pub");
+    File::delete("{$this->tempFolder}/temp/$server.pub");
+    $this->output("SSH key: $r");
     return $this->getSshKeyCache[$server.$user] = trim($r);
   }
 
@@ -238,7 +257,7 @@ pear install phpunit/PHPUnit
 export DEBIAN_FRONTEND=noninteractive
 apt-get -y install postfix
 CMD
-);
+    );
   }
 
 }

@@ -1,10 +1,12 @@
 <?php
 
+// php ~/run/run.php "(new WebInstaller)->method()" NGN_ENV_PATH/manager/init.php
+
 class WebInstaller {
 
   public $name;
 
-  function __construct($name) {
+  function __construct($name = 'local') {
     $this->name = $name;
     $this->ei = new EnvInstaller;
   }
@@ -23,17 +25,25 @@ class WebInstaller {
     
   }
 
+  function installUser($pass) {
+    $pass = '';
+    $cmd = <<<CMD
+useradd -d /home/user -s /bin/bash -c "Developer" -p `openssl passwd -1 $pass` user
+mkdir /home/user && chown user /home/user
+apt-get -y install sudo
+echo '%user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+CMD;
+    $this->ei->cmdFile($this->name, $cmd);
+  }
+
   function installSoft() {
     $pass = $this->randString(10);
     $this->ei->cmd($this->name, 'apt-get -y install mc');
     $this->ei->installPhp($this->name);
     file_put_contents("/root/temp/userPass_{$this->name}", $pass);
+    $this->installUser($pass);
     $cmd = <<<CMD
 mkdir -p ~/temp
-useradd -d /home/user -s /bin/bash -c "Developer" -p `openssl passwd -1 $pass` user
-mkdir /home/user && chown user /home/user
-apt-get -y install sudo
-echo '%user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 apt-get update
 apt-get -y install git-core
 debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password password $pass'
