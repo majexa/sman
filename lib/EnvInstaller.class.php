@@ -6,22 +6,17 @@ define('DNS_SLAVE', "dnsSlave$n");
 define('PROJECTS1', "projects1$n");
 define('GIT', 'git');
 
-class EnvInstaller {
-  use DebugOutput;
+class EnvInstaller extends DigitaloceanRemoteSsh {
+use DebugOutput;
 
   protected function isDebug() {
     return true;
   }
 
-  /**
-   * @var Digitalocean
-   */
-  public $api;
-
   protected $tempFolder;
 
   function __construct() {
-    $this->api = new Digitalocean;
+    parent::__construct();
     $this->tempFolder = DATA_PATH.'/temp';
     Dir::make($this->tempFolder);
   }
@@ -46,7 +41,19 @@ class EnvInstaller {
     return implode(',', $ids);
   }
 
+  protected function checkEmail() {
+    mail('bot@masted.ru', 'check', 'one check');
+    foreach (glob('/home/'.self::$mailUser.'/Maildir/new/*') as $file) {
+      if (strstr(file_get_contents($file), 'one check')) {
+        unlink($file);
+        return true;
+      }
+    }
+    throw new Exception('Email problem');
+  }
+
   function createServer($server) {
+    $this->checkEmail();
     $this->api->createServer($server);
     $this->output("Waiting for server is active");
     while (true) {
@@ -149,28 +156,6 @@ CMD
   }
   */
 
-  function password($server) {
-    $password = Config::getFileVar(DATA_PATH.'/passwords.php', false)[$server];
-    Misc::checkEmpty($password, "server '$server' password is empty");
-    return $password;
-  }
-
-  function sshpass($server) {
-    return "sshpass -p '{$this->password($server)}'";
-  }
-
-  function getCmd($server, $cmd) {
-    $s = $this->api->server($server);
-    if (strstr($cmd, "\n")) $cmd = "<< EOF\n$cmd\nEOF";
-    return $this->sshpass($server)." ssh -T {$s['ip_address']} $cmd";
-  }
-
-  function cmd($server, $cmd) {
-    $cmd = str_replace("\r", "\n", $cmd);
-    if ($server == 'local') return sys($cmd);
-    return sys($this->getCmd($server, $cmd));
-  }
-
   function cmdFile($server, $cmd) {
     if ($server == 'local') {
       return sys($cmd);
@@ -183,15 +168,7 @@ CMD
     $this->cmd($server, "{$this->tempFolder}/$server-install");
   }
 
-  function addSshKey($fromServer, $toServer, $user = null) {
-    if ($this->sshKeyIsInAuthorized($fromServer, $toServer, $user)) return;
-    $this->genSshKey($fromServer, $user);
-    $sshKey = $this->getSshKey($fromServer, $user);
-    $this->output("Adding SSH key from '$fromServer' to '$toServer'");
-    $this->uploadSshKey($sshKey, $toServer);
-  }
-
-  function sshKeyIsInAuthorized($fromServer, $toServer, $user = null) {
+  function sshKeyIsInAuthorized($fromServer, $toServer, $user = 'root') {
     $this->output("Check SSH key for server '$fromServer' at '$toServer'");
     $sshKey = $this->getSshKey($fromServer, $user);
     $r = (bool)$this->cmd($toServer, "'grep \"$sshKey\" ~/.ssh/authorized_keys'");
@@ -199,7 +176,7 @@ CMD
     return $r;
   }
 
-  function removeSshKey($fromServer, $toServer, $user = null) {
+  function removeSshKey($fromServer, $toServer, $user = 'root') {
     $sshKey = $this->getSshKey($fromServer, $user);
     $this->cmd($toServer, <<<CMD
 grep -v "$sshKey" ~/.ssh/authorized_keys > ~/.ssh/authorized_keys_tmp
@@ -216,7 +193,7 @@ CMD
     var_export($this->api->server($server));
   }
 
-  function genSshKey($server, $user = null) {
+  function genSshKey($server, $user = 'root') {
     if ($user) $suCmd = "su $user\n";
     $this->cmd($server, <<<CMD
 {$suCmd}if [ ! -f ~/.ssh/id_rsa ]; then

@@ -13,13 +13,9 @@ class ServerManager {
     $this->wi->ei->deleteServer($this->name, false);
     $this->wi->ei->createServer($this->name);
     $this->wi->ei->addLocalSshKey($this->name);
-    output("============================ Install Soft");
     $this->wi->installSoft();
-    output("============================ Install Env");
     $this->wi->installEnv();
-    output("============================ Install Config");
     $this->wi->installConfig();
-    output("============================ Install DNS");
     $this->wi->installDns();
   }
 

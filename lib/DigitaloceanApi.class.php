@@ -17,7 +17,8 @@ class DigitaloceanApi {
     $this->output("Creating server '$name'");
     return $this->api('droplets/new', array_merge([
       'size_id'   => 66,
-      'image_id'  => 1505447,
+      //'image_id'  => 1505447, // ubuntu 12.04 x64
+      'image_id'  => 1505527, // ubuntu 12.04 x32
       'region_id' => 2,
       'name'      => $name
     ], $opts));
