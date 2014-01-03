@@ -1,15 +1,9 @@
 <?php
 
-/**
- * @method void api($uri, array $data = [])
- * @method void createServer($name, $opts)
- * @method void servers()
- * @method void deleteServer($id)
- */
-class DigitaloceanApiCached extends ObjectCacher {
+class DoceanApiCached extends ObjectCacher {
 
   protected function getObject() {
-    return new DigitaloceanApi;
+    return new DoceanApi;
   }
 
   function cachedMethods() {

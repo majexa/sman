@@ -1,6 +1,6 @@
 <?php
 
-class DigitaloceanRemoteSsh extends RemoteSshAbstract {
+class DoceanRemoteSsh extends RemoteSshAbstract {
 
   /**
    * @var Digitalocean
@@ -8,7 +8,7 @@ class DigitaloceanRemoteSsh extends RemoteSshAbstract {
   public $api;
 
   function __construct( ) {
-    $this->api = new Digitalocean;
+    $this->api = new Docean;
   }
 
   protected function password($serverName) {

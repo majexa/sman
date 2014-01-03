@@ -1,12 +1,13 @@
 <?php
 
-class DigitaloceanApi {
+class DoceanApi {
   use DebugOutput;
 
   public $outputResult = false;
 
   function api($uri, array $data = []) {
-    $r = (new Curl)->get("https://api.digitalocean.com/$uri?client_id=aeOp6fwVrvbS0Sijbyj7A&api_key=WrgjH5DimPjU1NdG00VPWOR2vpShoRKoBZREHO2uD&".http_build_query($data));
+    $data = array_merge($data, Config::getVar('doceanAccess'));
+    $r = (new Curl)->get("https://api.digitalocean.com/$uri?".http_build_query($data));
     $r = json_decode($r, true);
     if ($r['status'] == 'ERROR') throw new Exception('DigitalOcean: '.$r['error_message']);
     if ($this->outputResult) print_r($r);

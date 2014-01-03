@@ -41,25 +41,9 @@ use DebugOutput;
     return implode(',', $ids);
   }
 
-  protected function checkEmail() {
-    mail('bot@masted.ru', 'check', 'one check');
-    foreach (glob('/home/'.self::$mailUser.'/Maildir/new/*') as $file) {
-      if (strstr(file_get_contents($file), 'one check')) {
-        unlink($file);
-        return true;
-      }
-    }
-    throw new Exception('Email problem');
-  }
 
   function createServer($server) {
     $this->checkEmail();
-    $this->api->createServer($server);
-    $this->output("Waiting for server is active");
-    while (true) {
-      if ($this->api->server($server)['status'] == 'active') break;
-      sleep(5);
-    }
     $this->storePassFromMail($server);
     $this->output("Wait 30 sec");
     sleep(30); // need to try connection here

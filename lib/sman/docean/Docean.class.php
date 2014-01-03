@@ -1,11 +1,20 @@
 <?php
 
-class Digitalocean extends ObjectMapper {
+class Docean extends ObjectMapper {
 
-  public $api;
+  // for autocomplete
+  static function get() {
+    /* @var $a Docean|DoceanApi */
+    static $a;
+    if (isset($a)) return $a;
+    $a = new self;
+    return $a;
+  }
+
+  protected $api;
 
   function __construct() {
-    $this->api = new DigitaloceanApiCached;
+    $this->api = new DoceanApiCached;
   }
 
   protected function getObject() {
@@ -18,6 +27,15 @@ class Digitalocean extends ObjectMapper {
       else return false;
     }
     return $r;
+  }
+
+  function createServer($name) {
+    $this->api->createServer($name);
+    $this->output("Waiting for server is active");
+    while (true) {
+      if ($this->api->server($name)['status'] == 'active') break;
+      sleep(5);
+    }
   }
 
   function deleteServer($server) {

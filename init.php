@@ -1,4 +1,4 @@
 <?php
 
 Lib::addFolder(__DIR__.'/lib');
-define('DATA_PATH', __DIR__.'/data');
+define('SMAN_PATH', __DIR__);
