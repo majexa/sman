@@ -2,25 +2,10 @@
 
 class SSH2 {
 
-  public $_host;
-  public $_port;
-
-  public $_username;
-  public $_password;
-
-  public $_c;
-
-  public $_current_stream;
-
-  public $_sftp;
-
-  public $_log_reads = false;
-  public $_log_writes = false;
-
-  public $_log_buf = '';
+  public $_host, $_port, $_username, $_password, $_c, $_current_stream, $_sftp, $_log_reads = false, $_log_writes = false, $_log_buf = '';
 
   function __construct($host, $port = 22, $callbacks = []) {
-    if (!function_exists('ssh2_connect')) throw new Exception('ERROR: PECL ssh2 must be installed!');
+    if (!function_exists('ssh2_connect')) throw new Exception('PECL ssh2 must be installed!');
     $this->_host = $host;
     $this->_port = $port;
     $this->_c = ssh2_connect($this->_host, $this->_port, [], $callbacks);
@@ -105,31 +90,24 @@ class SSH2 {
   function waitPrompt($prompt_regex = '> $', &$buf = '', $timeout_secs = 0, $stream = null) {
     if (!$stream) $stream = $this->_current_stream;
     if ($timeout_secs) {
-
       $_ver = preg_replace('#-.*?$#', '', phpversion('ssh2'));
       if (version_compare($_ver, '0.11.0', '<')) {
         echo "ERROR: Using old version of PECL ssh2 ($_ver); timeouts broken!";
         die();
       }
-
       $end = time() + $timeout_secs;
-
       $saved_meta_info = $this->getMeta($stream);
       stream_set_blocking($stream, false);
-
       while (!$_r = preg_match("#$prompt_regex#", $buf .= fread($stream, 4096))) {
         if (time() > $end) break;
         fflush($stream);
         usleep(1);
       }
-
       stream_set_blocking($stream, $saved_meta_info['blocked']);
-
     }
     else {
       while (!$_r = preg_match("#$prompt_regex#", $buf .= fread($stream, 4096))) fflush($stream);
     }
-
     if ($this->_log_reads) $this->_log_buf .= $buf;
     return $_r;
   }
