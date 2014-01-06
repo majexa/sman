@@ -126,7 +126,7 @@ CMD
     $files = $this->findMailFiles($server);
     if (count($files) == 0) throw new Exception("Mail for server '$server' not found");
     if (count($files) > 1) throw new Exception("Can not be more than 1 email for server '$server'");
-    Config::updateSubVar(DATA_PATH.'/passwords.php', $server, $files[0]['password']);
+    SmanConfig::updateSubVar('passwords', $server, $files[0]['password']);
     unlink($files[0]['file']);
   }
 

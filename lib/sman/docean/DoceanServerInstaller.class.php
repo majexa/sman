@@ -3,29 +3,28 @@
 /**
  * Hole server installer
  */
-class SmanSinstaller {
+class DoceanServerinstaller extends SmanServerAbstract {
   use DebugOutput;
 
-  protected $name, $type, $docean, $botEmail, $mailUser;
+  protected $name, $docean, $botEmail, $botEmailFolder;
 
-  function __construct($name, $type) {
+  function __construct($name) {
     $this->name = $name;
-    $this->type = $type;
     $this->docean = Docean::get();
-    $this->botEmail = 'bot@masted.ru';
-    $this->mailUser = explode('@', $this->botEmail)[0];
+    $this->botEmailUser = 'root';
+    $this->botEmailCheck = $this->botEmailUser.'@localhost';
+    $this->botEmailFolder = ($this->botEmailUser == 'root' ? '/root' : '/home/'.$this->botEmailUser).'/Maildir/new';
   }
 
   function install() {
     $this->checkEmail();
     $this->docean->createServer($this->name);
     $this->storePassFromMail();
-    SmanIinstaller::get($this->type, $this->name)->install();
   }
 
   protected function checkEmail() {
-    mail($this->botEmail, 'check', 'one check');
-    foreach (glob('/home/'.$this->mailUser.'/Maildir/new/*') as $file) {
+    mail($this->botEmailCheck, 'check', 'one check');
+    foreach (glob($this->botEmailFolder.'/*') as $file) {
       if (strstr(file_get_contents($file), 'one check')) {
         unlink($file);
         return;
@@ -40,7 +39,7 @@ class SmanSinstaller {
     $files = $this->findMailFiles($server);
     if (count($files) == 0) throw new Exception("Mail for server '$server' not found");
     if (count($files) > 1) throw new Exception("Can not be more than 1 email for server '$server'");
-    Config::updateSubVar(DATA_PATH.'/passwords.php', $server, $files[0]['password']);
+    SmanConfig::updateSubVar('rootPasswords', $server, $files[0]['password']);
     unlink($files[0]['file']);
   }
 
@@ -48,7 +47,7 @@ class SmanSinstaller {
     $r = [];
     $serverIp = $this->docean->server($this->name)['ip_address'];
     Misc::checkEmpty($serverIp, "Server '$this->name' is not active yet");
-    if (($files = glob('/home/'.self::$mailUser.'/Maildir/new/*'))) {
+    if (($files = glob('~/*'))) {
       foreach ($files as $file) {
         $fileName = basename($file);
         try {
