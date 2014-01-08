@@ -8,7 +8,7 @@ class SshSftp {
     $this->sftp = ssh2_sftp($connection());
   }
 
-  public function __call($func, $args) {
+  function __call($func, $args) {
     $func = "ssh2_sftp_$func";
     if (function_exists($func)) {
       array_unshift($args, $this->sftp);
@@ -17,6 +17,10 @@ class SshSftp {
     else {
       throw new Exception($func.' is not a valid SFTP function');
     }
+  }
+
+  function putContents($file, $data) {
+    file_put_contents('ssh2.sftp://'.$this->sftp.$file, $data);
   }
 
 }

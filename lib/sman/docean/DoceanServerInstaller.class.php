@@ -39,7 +39,7 @@ class DoceanServerinstaller extends SmanServerAbstract {
     $files = $this->findMailFiles($server);
     if (count($files) == 0) throw new Exception("Mail for server '$server' not found");
     if (count($files) > 1) throw new Exception("Can not be more than 1 email for server '$server'");
-    SmanConfig::updateSubVar('rootPasswords', $server, $files[0]['password']);
+    SmanConfig::updateSubVar('doceanServers', $server, $files[0]['password']);
     unlink($files[0]['file']);
   }
 

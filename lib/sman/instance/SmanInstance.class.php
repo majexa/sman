@@ -33,7 +33,11 @@ abstract class SmanInstance extends SmanInstanceAbstract {
       'apt-get update',
       'add-apt-repository --yes ppa:ondrej/php5-oldstable',
       'apt-get update',
-      'apt-get -y install php5-cli php5-dev',
+      'apt-get -y install php5-cli php5-dev php-pear',
+    ]);
+    print $this->ssh->exec([
+      'pear channel-discover pear.phpunit.de',
+      'pear install phpunit/PHPUnit',
     ]);
     print $this->ssh->exec([
       'wget http://archive.ubuntu.com/ubuntu/pool/universe/libs/libssh2/libssh2-1_1.4.2-1.1_amd64.deb',
@@ -46,9 +50,7 @@ abstract class SmanInstance extends SmanInstanceAbstract {
   protected function installPhpFull() {
     $this->installPhp();
     print $this->ssh->exec([
-      'apt-get -y install php5-curl php5-memcached php-pear php5-fpm php5-gd php5-mysql php5-dev',
-      'sudo pear channel - discover pear.phpunit.de',
-      'pear install phpunit/PHPUnit',
+      'apt-get -y install php5-curl php5-memcached  php5-fpm php5-gd php5-mysql php5-dev',
       'apt-get -y install memcached',
       'apt-get -y install imagemagick',
     ]);
@@ -91,7 +93,8 @@ abstract class SmanInstance extends SmanInstanceAbstract {
       'export DEBIAN_FRONTEND=noninteractive',
       'apt-get -y install postfix',
       'postconf -e "home_mailbox = Maildir/"',
-      '/etc/init.d/postfix restart'
+      '/etc/init.d/postfix restart',
+      'postconf -e "mydestination = localhost, '.Config::getSubVar('botEmail', 'domain').'"',
     ]);
   }
 
