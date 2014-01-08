@@ -1,6 +1,7 @@
 <?php
 
 class Docean extends ObjectMapper {
+  use DebugOutput;
 
   // for autocomplete
   static function get() {
@@ -33,18 +34,18 @@ class Docean extends ObjectMapper {
     $this->api->createServer($name);
     $this->output("Waiting for server is active");
     while (true) {
-      if ($this->api->server($name)['status'] == 'active') break;
+      if ($this->server($name)['status'] == 'active') break;
       sleep(5);
     }
   }
 
-  function deleteServer($server) {
-    $this->api->deleteServer($this->server($server)['id']);
-    if (($sshKeyId = $this->sshKeyId($server))) $this->api->deleteSshKey($sshKeyId);
+  function deleteServer($name) {
+    $this->api->deleteServer($this->server($name)['id']);
+    if (($sshKeyId = $this->sshKeyId($name))) $this->api->deleteSshKey($sshKeyId);
   }
 
-  function sshKeyId($server) {
-    return Arr::getSubValue($this->api->sshKeys(), 'name', $server, 'id');
+  function sshKeyId($name) {
+    return Arr::getSubValue($this->api->sshKeys(), 'name', $name, 'id');
   }
 
 }

@@ -10,14 +10,14 @@ abstract class SmanInstance extends SmanInstanceAbstract {
 
   protected function createUser() {
     $user = 'user';
-    $pass = '123';
+    $pass = Misc::randString(7);
     $this->ssh->exec([
       "useradd -m -s /bin/bash -p `openssl passwd -1 $pass` $user",
     ]);
     SmanConfig::updateSubVar('userPasswords', $this->sshConnection->host, $pass);
     $this->ssh->exec([
       'apt-get -y install sudo',
-      "%$user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
+      "echo '%$user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
     ]);
   }
 
@@ -33,7 +33,7 @@ abstract class SmanInstance extends SmanInstanceAbstract {
       'apt-get update',
       'add-apt-repository --yes ppa:ondrej/php5-oldstable',
       'apt-get update',
-      'apt-get -y install php5-cli php5-dev php-pear',
+      'apt-get -y install php5-cli php5-dev php-pear php5-curl',
     ]);
     print $this->ssh->exec([
       'pear channel-discover pear.phpunit.de',
@@ -50,7 +50,7 @@ abstract class SmanInstance extends SmanInstanceAbstract {
   protected function installPhpFull() {
     $this->installPhp();
     print $this->ssh->exec([
-      'apt-get -y install php5-curl php5-memcached  php5-fpm php5-gd php5-mysql php5-dev',
+      'apt-get -y install php5-curl php5-memcached php5-fpm php5-gd php5-mysql',
       'apt-get -y install memcached',
       'apt-get -y install imagemagick',
     ]);

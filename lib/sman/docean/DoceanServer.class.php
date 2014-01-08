@@ -1,9 +1,6 @@
 <?php
 
-/**
- * Hole server installer
- */
-class DoceanServerinstaller extends SmanServerAbstract {
+class DoceanServer {
   use DebugOutput;
 
   protected $name, $docean, $botEmail, $botEmailFolder;
@@ -11,12 +8,13 @@ class DoceanServerinstaller extends SmanServerAbstract {
   function __construct($name) {
     $this->name = $name;
     $this->docean = Docean::get();
-    $this->botEmailUser = 'root';
+    $this->botEmailUser = 'user';
     $this->botEmailCheck = $this->botEmailUser.'@localhost';
     $this->botEmailFolder = ($this->botEmailUser == 'root' ? '/root' : '/home/'.$this->botEmailUser).'/Maildir/new';
   }
 
-  function install() {
+  function create() {
+    output("Creating server {$this->name}");
     $this->checkEmail();
     $this->docean->createServer($this->name);
     $this->storePassFromMail();
@@ -24,6 +22,7 @@ class DoceanServerinstaller extends SmanServerAbstract {
 
   protected function checkEmail() {
     mail($this->botEmailCheck, 'check', 'one check');
+    usleep(500);
     foreach (glob($this->botEmailFolder.'/*') as $file) {
       if (strstr(file_get_contents($file), 'one check')) {
         unlink($file);
@@ -33,8 +32,12 @@ class DoceanServerinstaller extends SmanServerAbstract {
     throw new Exception('Email problem');
   }
 
+  protected function output($s) {
+    output($s);
+  }
+
   protected function storePassFromMail() {
-    $this->output("Waiting for mail");
+    output("Waiting for mail");
     $server = $this->name;
     $files = $this->findMailFiles($server);
     if (count($files) == 0) throw new Exception("Mail for server '$server' not found");
@@ -43,11 +46,11 @@ class DoceanServerinstaller extends SmanServerAbstract {
     unlink($files[0]['file']);
   }
 
-  protected function findMailFiles() {
+  function findMailFiles($serverIp = null) {
     $r = [];
-    $serverIp = $this->docean->server($this->name)['ip_address'];
+    $serverIp = $serverIp ?: $this->docean->server($this->name)['ip_address'];
     Misc::checkEmpty($serverIp, "Server '$this->name' is not active yet");
-    if (($files = glob('~/*'))) {
+    if (($files = glob($this->botEmailFolder.'/*'))) {
       foreach ($files as $file) {
         $fileName = basename($file);
         try {
@@ -61,15 +64,15 @@ class DoceanServerinstaller extends SmanServerAbstract {
         $p2 = '/.*Password: (\w+).*/s';
         $p3 = '/.*\((\w+)\) - DigitalOcean.*/';
         if (!preg_match($p1, $body)) {
-          $this->output('Skipped '.$fileName.'. Wrong body format. Expected "IP Address: ..."');
+          output('Skipped '.$fileName.'. Wrong body format. Expected "IP Address: ..."');
           continue;
         }
         if (!preg_match($p2, $body)) {
-          $this->output('Skipped '.$fileName.'. Wrong body format. Expected "Password: ..."');
+          output('Skipped '.$fileName.'. Wrong body format. Expected "Password: ..."');
           continue;
         }
         if (!preg_match($p3, $subj)) {
-          $this->output('Skipped '.$fileName.'. Wrong subject format. Expected "(serverName) - DigitalOcean"');
+          output('Skipped '.$fileName.'. Wrong subject format. Expected "(serverName) - DigitalOcean"');
           continue;
         }
         $mServerIp = preg_replace($p1, '$1', $body);
