@@ -8,6 +8,11 @@ abstract class SmanInstance extends SmanInstanceAbstract {
   protected $user = 'root';
   static $classPrefix = 'SmanInstance';
 
+  function install() {
+    $this->installCore();
+    parent::install();
+  }
+
   protected function createUser() {
     $user = 'user';
     $pass = Misc::randString(7);
@@ -21,9 +26,9 @@ abstract class SmanInstance extends SmanInstanceAbstract {
     ]);
   }
 
-  protected function installCore() {
+  function installCore() {
     print $this->ssh->exec([
-      'apt-get -y install mc',
+      'apt-get -y install mc git-core',
     ]);
   }
 
@@ -50,14 +55,10 @@ abstract class SmanInstance extends SmanInstanceAbstract {
   protected function installPhpFull() {
     $this->installPhp();
     print $this->ssh->exec([
-      'apt-get -y install php5-curl php5-memcached php5-fpm php5-gd php5-mysql',
+      'apt-get -y install php5-memcached php5-fpm php5-gd php5-mysql',
       'apt-get -y install memcached',
       'apt-get -y install imagemagick',
     ]);
-  }
-
-  protected function installGit() {
-    print $this->ssh->exec('apt-get -y install git-core');
   }
 
   protected function installNginx() {

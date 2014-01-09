@@ -6,6 +6,7 @@ class Ssh extends SshBase {
     if (is_array($cmd)) {
       $cmd = implode('; echo "******"; ', $cmd);
     }
+    output($cmd);
     $outputStream = ssh2_exec($this->connection, $cmd, false, null);
     $errorStream = ssh2_fetch_stream($outputStream, SSH2_STREAM_STDERR);
     stream_set_blocking($errorStream, true);

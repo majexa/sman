@@ -14,7 +14,6 @@ class DoceanServer {
   }
 
   function create() {
-    output("Creating server {$this->name}");
     $this->checkEmail();
     $this->docean->createServer($this->name);
     $this->storePassFromMail();
@@ -22,12 +21,15 @@ class DoceanServer {
 
   protected function checkEmail() {
     mail($this->botEmailCheck, 'check', 'one check');
-    usleep(500);
-    foreach (glob($this->botEmailFolder.'/*') as $file) {
-      if (strstr(file_get_contents($file), 'one check')) {
-        unlink($file);
-        return;
+    for ($i=1; $i<=3; $i++) {
+      output("Check localhost email ($i)");
+      foreach (glob($this->botEmailFolder.'/*') as $file) {
+        if (strstr(file_get_contents($file), 'one check')) {
+          unlink($file);
+          return;
+        }
       }
+      sleep(1);
     }
     throw new Exception('Email problem');
   }
@@ -37,12 +39,14 @@ class DoceanServer {
   }
 
   protected function storePassFromMail() {
-    output("Waiting for mail");
-    $server = $this->name;
-    $files = $this->findMailFiles($server);
-    if (count($files) == 0) throw new Exception("Mail for server '$server' not found");
-    if (count($files) > 1) throw new Exception("Can not be more than 1 email for server '$server'");
-    SmanConfig::updateSubVar('doceanServers', $server, $files[0]['password']);
+    for ($i=1; $i<=3; $i++) {
+      output("Waiting for mail ($i)");
+      if (($files = $this->findMailFiles())) break;
+      sleep(5);
+    }
+    if (count($files) == 0) throw new Exception("Mail for server '$this->name' not found");
+    if (count($files) > 1) throw new Exception("Can not be more than 1 email for server '$this->name'");
+    SmanConfig::updateSubVar('doceanServers', $this->name, $files[0]['password']);
     unlink($files[0]['file']);
   }
 
@@ -64,7 +68,7 @@ class DoceanServer {
         $p2 = '/.*Password: (\w+).*/s';
         $p3 = '/.*\((\w+)\) - DigitalOcean.*/';
         if (!preg_match($p1, $body)) {
-          output('Skipped '.$fileName.'. Wrong body format. Expected "IP Address: ..."');
+          output('Skipped '.$fileName.'. Wrong body format. Expected "IP Address: '.$serverIp.'"');
           continue;
         }
         if (!preg_match($p2, $body)) {

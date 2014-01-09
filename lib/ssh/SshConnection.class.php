@@ -18,8 +18,4 @@ abstract class SshConnection {
     return $this->connection;
   }
 
-  function close() {
-
-  }
-
 }

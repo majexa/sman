@@ -6,24 +6,26 @@ class SmanCore {
 
   static function create($type, $id) {
     $name = $type.$id;
-    (new DoceanServer($name))->create();
+    //(new DoceanServer($name))->create();
     self::createInstance($type, new DoceanSshConnection($name));
   }
 
   static function createInstance($type, SshConnection $sshConnection) {
+    SmanEnv::get($type, $sshConnection)->_install();
+    return;
     self::checkConfig();
     SmanInstance::get($type, $sshConnection)->install();
     $host = $sshConnection->host;
     unset($sshConnection);
     $sshConnection = new SshPasswordConnection($host, 'user', Config::getSubVar('userPasswords', $host));
-    SmanEnv::get($type, $sshConnection)->install();
   }
 
   static function checkConfig() {
-    Config::getSubVar('botEmail', 'domain');
     Config::getVar('doceanAccess');
-    Config::getVar('git');
+    Config::getSubVar('botEmail', 'domain');
     Config::getSubVar('servers', 'dnsMaster');
+    Config::getVar('git');
+    Config::getVar('baseDomain');
   }
 
 }

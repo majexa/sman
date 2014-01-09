@@ -11,7 +11,7 @@ abstract class SmanEnv extends SmanInstanceAbstract {
   protected function cloneNgnEnv($repos = []) {
     $cmd = [
       'mkdir ~/ngn-env',
-      'cd ngn-env',
+      'cd ~/ngn-env',
     ];
     foreach ($repos as $repo) $cmd[] = "git clone $this->gitUrl/$repo.git";
     $this->ssh->exec($cmd);
@@ -19,9 +19,10 @@ abstract class SmanEnv extends SmanInstanceAbstract {
 
   function install() {
     $this->_install();
-    $this->createConfig();
-    $this->ssh->exec('~/ngn-env/ci/update');
-    $this->ssh->exec('php ~/ngn-env/pm/pm.php localServer updateHosts');
+  }
+
+  function baseDomain() {
+    return $this->name.'.'.Config::getVar('baseDomain');
   }
 
   function createConfig() {
@@ -30,6 +31,7 @@ abstract class SmanEnv extends SmanInstanceAbstract {
       "mkdir ~/ngn-env/config/nginxProjects",
       "mkdir ~/ngn-env/config/remoteServers"
     ]);
+    return;
     $pass = SmanConfig::getSubVar('userPasswords', $this->sshConnection->host);
     $this->sftp->putContents('~/ngn-env/config/server.php', "<?php\n\nreturn ".var_export([
         'host'          => $this->sshConnection->host,

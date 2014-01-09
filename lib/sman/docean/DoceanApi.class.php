@@ -15,7 +15,7 @@ class DoceanApi {
   }
 
   function createServer($name, array $opts = []) {
-    $this->output("Creating server '$name'");
+    output("Creating server '$name'");
     return $this->api('droplets/new', array_merge([
       'size_id'   => 66,
       'image_id'  => 1505447, // ubuntu 12.04 x64

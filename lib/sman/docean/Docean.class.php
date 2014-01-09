@@ -1,7 +1,6 @@
 <?php
 
 class Docean extends ObjectMapper {
-  use DebugOutput;
 
   // for autocomplete
   static function get() {
@@ -32,7 +31,7 @@ class Docean extends ObjectMapper {
 
   function createServer($name) {
     $this->api->createServer($name);
-    $this->output("Waiting for server is active");
+    output("Waiting for server is active");
     while (true) {
       if ($this->server($name)['status'] == 'active') break;
       sleep(5);
