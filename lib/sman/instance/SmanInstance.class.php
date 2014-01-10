@@ -28,6 +28,7 @@ abstract class SmanInstance extends SmanInstanceAbstract {
 
   function installCore() {
     print $this->ssh->exec([
+      'apt-get update',
       'apt-get -y install mc git-core',
     ]);
   }
@@ -40,15 +41,10 @@ abstract class SmanInstance extends SmanInstanceAbstract {
       'apt-get update',
       'apt-get -y install php5-cli php5-dev php-pear php5-curl',
     ]);
+    print $this->ssh->exec('apt-get -y install libssh2-1-dev libssh2-php');
     print $this->ssh->exec([
       'pear channel-discover pear.phpunit.de',
       'pear install phpunit/PHPUnit',
-    ]);
-    print $this->ssh->exec([
-      'wget http://archive.ubuntu.com/ubuntu/pool/universe/libs/libssh2/libssh2-1_1.4.2-1.1_amd64.deb',
-      'wget http://archive.ubuntu.com/ubuntu/pool/universe/p/php-ssh2/libssh2-php_0.11.3-0.1build1_amd64.deb',
-      'dpkg -i libssh2-1_1.4.2-1.1_amd64.deb',
-      'dpkg -i libssh2-php_0.11.3-0.1build1_amd64.deb'
     ]);
   }
 

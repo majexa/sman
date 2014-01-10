@@ -6,18 +6,18 @@ class SmanCore {
 
   static function create($type, $id) {
     $name = $type.$id;
-    //(new DoceanServer($name))->create();
+    (new DoceanServer($name))->create();
+    output('Waiting 15 sec after creation');
+    sleep(15);
     self::createInstance($type, new DoceanSshConnection($name));
   }
 
   static function createInstance($type, SshConnection $sshConnection) {
-    SmanEnv::get($type, $sshConnection)->_install();
-    return;
     self::checkConfig();
     SmanInstance::get($type, $sshConnection)->install();
     $host = $sshConnection->host;
-    unset($sshConnection);
-    $sshConnection = new SshPasswordConnection($host, 'user', Config::getSubVar('userPasswords', $host));
+    $sshConnection = new SshPasswordConnection($host, 'user', Config::getSubVar('userPasswords', $host, true));
+    SmanEnv::get($type, $sshConnection)->install();
   }
 
   static function checkConfig() {

@@ -33,7 +33,9 @@ class Docean extends ObjectMapper {
     $this->api->createServer($name);
     output("Waiting for server is active");
     while (true) {
-      if ($this->server($name)['status'] == 'active') break;
+      if ($this->server($name)['status'] == 'active') {
+        break;
+      }
       sleep(5);
     }
   }

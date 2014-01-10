@@ -20,7 +20,7 @@ class DoceanApi {
       'size_id'   => 66,
       'image_id'  => 1505447, // ubuntu 12.04 x64
       //'image_id'  => 1505527, // ubuntu 12.04 x32
-      'region_id' => 5, // amsterdam 2
+      'region_id' => 4, // amsterdam... US: 1, 4
       'name'      => $name
     ], $opts));
   }

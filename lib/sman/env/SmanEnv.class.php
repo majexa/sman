@@ -13,8 +13,8 @@ abstract class SmanEnv extends SmanInstanceAbstract {
       'mkdir ~/ngn-env',
       'cd ~/ngn-env',
     ];
-    foreach ($repos as $repo) $cmd[] = "git clone $this->gitUrl/$repo.git";
-    $this->ssh->exec($cmd);
+    print $this->ssh->exec($cmd);
+    foreach ($repos as $repo) print $this->ssh->exec("git clone $this->gitUrl/$repo.git");
   }
 
   function install() {

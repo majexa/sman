@@ -11,7 +11,7 @@ class SshPublicKeyConnection extends SshConnection {
     parent::__construct($host, $port);
   }
 
-  protected function connect() {
+  protected function auth() {
     if (ssh2_auth_pubkey_file($this->connection, $this->username, $this->publicKey, $this->privateKey) === false) {
       throw new Exception('SSH2 login is invalid');
     }
