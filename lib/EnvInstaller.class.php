@@ -72,7 +72,7 @@ CMD
     }
     $this->api->deleteServer($server);
     $this->removeSshKey($server, 'git');
-    Config::removeSubVar(DATA_PATH.'/passwords.php', $server);
+    FileVar::removeSubVar(DATA_PATH.'/passwords.php', $server);
     $this->output("Waiting for server is removed");
     while ($this->api->server($server, false)) sleep(5);
     $this->output("Removed");
