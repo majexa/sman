@@ -4,6 +4,14 @@ if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
 
 class SmanCore {
 
+  static function checkConfig() {
+    Config::getVar('doceanAccess');
+    Config::getSubVar('botEmail', 'domain');
+    Config::getSubVar('servers', 'dnsMaster');
+    Config::getVar('git');
+    Config::getVar('baseDomain');
+  }
+
   static function create($type, $id) {
     $name = $type.$id;
     (new DoceanServer($name))->create();
@@ -18,14 +26,6 @@ class SmanCore {
     $host = $sshConnection->host;
     $sshConnection = new SshPasswordConnection($host, 'user', Config::getSubVar('userPasswords', $host, true));
     SmanEnv::get($type, $sshConnection)->install();
-  }
-
-  static function checkConfig() {
-    Config::getVar('doceanAccess');
-    Config::getSubVar('botEmail', 'domain');
-    Config::getSubVar('servers', 'dnsMaster');
-    Config::getVar('git');
-    Config::getVar('baseDomain');
   }
 
 }
