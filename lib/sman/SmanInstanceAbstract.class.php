@@ -23,7 +23,8 @@ abstract class SmanInstanceAbstract {
   /**
    * @return SmanInstanceAbstract
    */
-  static function get($type, SshConnection $sshConnection) {
+  static function get($type, SshConnection $sshConnection = null) {
+    if (!$sshConnection) $sshConnection = new SmanConnection;
     $class = static::$classPrefix.ucfirst($type);
     return new $class($sshConnection);
   }

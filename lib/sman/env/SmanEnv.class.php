@@ -11,6 +11,7 @@ abstract class SmanEnv extends SmanInstanceAbstract {
   protected function cloneNgnEnv($repos = []) {
     $cmd = [
       'mkdir ~/ngn-env',
+      'mkdir ~/ngn-env/logs',
       'cd ~/ngn-env',
     ];
     print $this->ssh->exec($cmd);

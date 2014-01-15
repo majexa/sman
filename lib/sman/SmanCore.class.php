@@ -12,7 +12,18 @@ class SmanCore {
     Config::getVar('baseDomain');
   }
 
-  static function create($type, $id) {
+  static function lastId($type) {
+    $servers = Docean::get()->servers();
+    $max = 0;
+    foreach ($servers as $v) if (Misc::hasPrefix('$type', $v['name'])) {
+      $id = (int)Misc::removePrefix($type, $v['name']);
+      if ($id > $max) $max = $id;
+    };
+    return $max;
+  }
+
+  static function create($type, $id = null) {
+    if (!$id) $id = self::lastId($type) + 1;
     $name = $type.$id;
     (new DoceanServer($name))->create();
     output('Waiting 15 sec after creation');
