@@ -1,6 +1,6 @@
 <?php
 
-abstract class SmanInstanceAbstract {
+abstract class SmanInstaller {
 
   protected $sshConnection, $scp, $sftp, $ssh, $gitUrl, $user;
 
@@ -21,12 +21,8 @@ abstract class SmanInstanceAbstract {
   static $classPrefix;
 
   /**
-   * @return SmanInstanceAbstract
+   * @return SmanInstaller
    */
-  static function get($type, SshConnection $sshConnection = null) {
-    if (!$sshConnection) $sshConnection = new SmanConnection;
-    $class = static::$classPrefix.ucfirst($type);
-    return new $class($sshConnection);
-  }
+  abstract static function get($type, $name);
 
 }

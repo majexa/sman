@@ -3,10 +3,19 @@
 /**
  * Instance installer
  */
-abstract class SmanInstance extends SmanInstanceAbstract {
+abstract class SmanInstance extends SmanInstaller {
+
+  /**
+   * @param $type
+   * @param $name
+   * @return SmanInstance
+   */
+  static function get($type, $name) {
+    $class = 'SmanInstance'.ucfirst($type);
+    return new $class(new DoceanRootConnection($name));
+  }
 
   protected $user = 'root';
-  static $classPrefix = 'SmanInstance';
 
   function install() {
     $this->installCore();

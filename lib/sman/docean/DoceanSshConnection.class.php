@@ -2,8 +2,8 @@
 
 class DoceanSshConnection extends SshPasswordConnection {
 
-  function __construct($name) {
-    parent::__construct(Docean::get()->server($name)['ip_address'], 'root', Config::getSubVar('doceanServers', $name));
+  function __construct($serverName) {
+    parent::__construct(Docean::get()->server($serverName)['ip_address'], 'root', Config::getSubVar('doceanServers', $serverName));
   }
 
 }

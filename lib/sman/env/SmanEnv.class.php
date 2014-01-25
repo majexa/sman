@@ -3,10 +3,25 @@
 /**
  * Environment installer
  */
-abstract class SmanEnv extends SmanInstanceAbstract {
+abstract class SmanEnv extends SmanInstaller {
+
+  /**
+   * @param $type
+   * @param $name
+   * @return SmanInstance
+   */
+  static function get($type, $name) {
+    $class = 'SmanEnv'.ucfirst($type);
+    return new $class($name);
+  }
 
   protected $user = 'user';
-  static $classPrefix = 'SmanEnv';
+  protected $name;
+
+  function __construct($name) {
+    parent::__construct(new DoceanUserConnection($name));
+    $this->name = $name;
+  }
 
   protected function cloneNgnEnv($repos = []) {
     $cmd = [
@@ -14,8 +29,8 @@ abstract class SmanEnv extends SmanInstanceAbstract {
       'mkdir ~/ngn-env/logs',
       'cd ~/ngn-env',
     ];
+    foreach ($repos as $repo) $cmd[] = "git clone $this->gitUrl/$repo.git";
     print $this->ssh->exec($cmd);
-    foreach ($repos as $repo) print $this->ssh->exec("git clone $this->gitUrl/$repo.git");
   }
 
   function install() {
@@ -31,7 +46,7 @@ abstract class SmanEnv extends SmanInstanceAbstract {
     $pass = SmanConfig::getSubVar('userPasswords', $this->sshConnection->host);
     $this->sftp->putContents('/home/user/ngn-env/config/server.php', "<?php\n\nreturn ".Arr::formatValue([
         'host'          => $this->sshConnection->host,
-        'baseDomain'    => Config::getVar('baseDomain'),
+        'baseDomain'    => $this->name.'.'.Config::getVar('baseDomain'),
         'sType'         => 'prod',
         'os'            => 'linux',
         'dbUser'        => 'root',

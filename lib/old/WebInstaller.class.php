@@ -69,7 +69,6 @@ pecl install amqp
 echo -e "extension=amqp.so" > /etc/php5/conf.d/amqp.ini
 
 CMD;
-    // @todo install piwik here
     $this->ei->cmdFile($this->name, "\n".$cmd);
   }
 
