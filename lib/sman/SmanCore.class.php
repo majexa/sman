@@ -39,4 +39,17 @@ class SmanCore {
     SmanEnv::get($type, $sshConnection)->install();
   }
 
+  static function createDns($name) {
+    $host = Docean::get()->server($name)['ip_address'];
+    $dnsHost = Config::getSubVar('servers', 'dnsMaster');
+    $cmd = Cli::formatRunCmd('(new DnsServer)->createZone("'.$name.'.'.Config::getVar('baseDomain').'", "'.$host.'")', 'NGN_ENV_PATH/dns-server/lib');
+    (new Ssh((new SshDefaultConnection($dnsHost, 'root'))))->exec($cmd);
+  }
+
+  static function createEnv($name) {
+    $host = Docean::get()->server($name)['ip_address'];
+    $sshConnection = new SshPasswordConnection($host, 'user', Config::getSubVar('userPasswords', $host, true));
+    SmanEnv::get('projects', $sshConnection)->install();
+  }
+
 }

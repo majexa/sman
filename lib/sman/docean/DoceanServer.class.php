@@ -47,6 +47,7 @@ class DoceanServer {
     if (count($files) == 0) throw new Exception("Mail for server '$this->name' not found");
     if (count($files) > 1) throw new Exception("Can not be more than 1 email for server '$this->name'");
     SmanConfig::updateSubVar('doceanServers', $this->name, $files[0]['password']);
+    output("Password email found & stored");
     unlink($files[0]['file']);
   }
 

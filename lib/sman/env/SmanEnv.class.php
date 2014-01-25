@@ -29,9 +29,7 @@ abstract class SmanEnv extends SmanInstanceAbstract {
       "mkdir ~/ngn-env/config/remoteServers"
     ]);
     $pass = SmanConfig::getSubVar('userPasswords', $this->sshConnection->host);
-    //$this->sftp->putContents('/tmp/eee', 'eeerrr');
-    //return;
-    $this->sftp->putContents('/home/user/ngn-env/config/server.php', "<?php\n\nreturn ".var_export([
+    $this->sftp->putContents('/home/user/ngn-env/config/server.php', "<?php\n\nreturn ".Arr::formatValue([
         'host'          => $this->sshConnection->host,
         'baseDomain'    => Config::getVar('baseDomain'),
         'sType'         => 'prod',
@@ -47,7 +45,8 @@ abstract class SmanEnv extends SmanInstanceAbstract {
         'webserverP'    => '/etc/init.d/nginx',
         'prototypeDb'   => 'file',
         'dnsMasterHost' => Config::getSubVar('servers', 'dnsMaster')
-      ], true).';');
+      ]).';');
+    output2('ok');
     $this->sftp->putContents('/home/user/ngn-env/config/database.php', <<<CODE
 <?php
 

@@ -41,7 +41,7 @@ abstract class SmanInstance extends SmanInstanceAbstract {
       'apt-get update',
       'apt-get -y install php5-cli php5-dev php-pear php5-curl',
     ]);
-    print $this->ssh->exec('apt-get -y install libssh2-1-dev libssh2-php');
+    //print $this->ssh->exec('apt-get -y install libssh2-1-dev libssh2-php');
     print $this->ssh->exec([
       'pear channel-discover pear.phpunit.de',
       'pear install phpunit/PHPUnit',
