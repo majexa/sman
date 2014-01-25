@@ -58,6 +58,7 @@ abstract class SmanEnv extends SmanInstaller {
         'ngnPath'       => "{ngnEnvPath}/ngn",
         'webserver'     => 'nginx',
         'webserverP'    => '/etc/init.d/nginx',
+        'nginxFastcgiPassUnixSocket' => true,
         'prototypeDb'   => 'file',
         'dnsMasterHost' => Config::getSubVar('servers', 'dnsMaster')
       ]).';');

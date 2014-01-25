@@ -64,6 +64,7 @@ abstract class SmanInstance extends SmanInstaller {
       'apt-get -y install memcached',
       'apt-get -y install imagemagick',
     ]);
+    print $this->ssh->exec('/etc/inir.d/php5-fpm start');
   }
 
   protected function installNginx() {

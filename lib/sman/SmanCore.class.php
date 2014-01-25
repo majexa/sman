@@ -8,7 +8,7 @@ class SmanCore {
    * Создаёт сервер, инсталирует среду
    *
    * @param string        projects|serverManager|dnsMaster|dnsSlave
-   * @param integer|null  Уникальный идентификатор сервера
+   * @param integer|null Уникальный идентификатор сервера
    */
   static function create($type, $id = null) {
     if (!$id) $id = self::lastId($type) + 1;
@@ -18,6 +18,58 @@ class SmanCore {
     sleep(15);
     self::createDns($name);
     self::createInstance($type, $name);
+  }
+
+  // -------------------------------------------
+
+  static function cli($s) {
+    if (!trim($s)) {
+      print <<<TEXT
+*-- Server Manager Program (c) masted 2014 --*
+Supported commands:
+- create {type}       // creates server by type
+- delete {serverName} // delete server by name
+- info {serverName}   // shows server info
+
+TEXT;
+      return;
+    }
+    $parts = explode(' ', $s);
+    if ($parts[0] == 'create') {
+      if (empty($parts[1])) {
+        output3('Choose server type');
+        return;
+      }
+      self::create($parts[1]);
+    }
+    elseif ($parts[0] == 'delete') {
+      if (empty($parts[1])) {
+        output3('Choose server name');
+        return;
+      }
+      Docean::get()->deleteServer($parts[1]);
+    }
+    elseif ($parts[0] == 'info') {
+      if (empty($parts[1])) {
+        output3('Choose server name');
+        return;
+      }
+      $name = $parts[1];
+      $server = Docean::get()->server($parts[1]);
+      $host = $server['ip_address'];
+      $rootPassword = Config::getSubVar('doceanServers', $name);
+      $userPassword = Config::getSubVar('userPasswords', $host);
+      print <<<TEXT
+*-- Server: $name --*
+Host: $host
+Root password: $rootPassword
+User password: $userPassword
+
+TEXT;
+    }
+    else {
+      output3("Unknown command: $s");
+    }
   }
 
   // -------------------------------------------
@@ -53,12 +105,12 @@ class SmanCore {
   static function createDns($name) {
     $dnsHost = Config::getSubVar('servers', 'dnsMaster');
     $ssh = (new Ssh((new SshDefaultConnection($dnsHost, 'root'))));
-    self::clearZone($name, Docean::get()->server($name)['ip_address'], $ssh);
-    self::clearZone('*.'.$name, Docean::get()->server($name)['ip_address'], $ssh);
+    self::createZone($name, Docean::get()->server($name)['ip_address'], $ssh);
+    self::createZone('*.'.$name, Docean::get()->server($name)['ip_address'], $ssh);
   }
 
-  static protected function clearZone($name, $host, Ssh $ssh) {
-    $cmd = str_replace('"', '\\"', '(new DnsServer)->createZone("'.$name.'.'.Config::getVar('baseDomain').'", "'.$host.'")');
+  static protected function createZone($name, $host, Ssh $ssh) {
+    $cmd = str_replace('"', '\\"', '(new DnsServer)->replaceZone("'.$name.'.'.Config::getVar('baseDomain').'", "'.$host.'")');
     $cmd = Cli::addRunPaths($cmd, 'NGN_ENV_PATH/dns-server/lib');
     print $ssh->exec($cmd);
   }
