@@ -47,7 +47,13 @@ TEXT;
         output3('Choose server name');
         return;
       }
-      Docean::get()->deleteServer($parts[1]);
+      $name = $parts[1];
+      SmanConfig::removeSubVar('userPasswords', Docean::get()->server($name)['ip_address']); // user password
+      SmanConfig::removeSubVar('doceanServers', $name); // root password
+      Docean::get()->deleteServer($name);
+    }
+    elseif ($parts[0] == 'list') {
+      print '* '.implode("\n* ", Arr::get(Docean::get()->servers(), 'name'))."\n";
     }
     elseif ($parts[0] == 'info') {
       if (empty($parts[1])) {
