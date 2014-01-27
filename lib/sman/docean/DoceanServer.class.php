@@ -17,6 +17,8 @@ class DoceanServer {
     $this->checkEmail();
     $this->docean->createServer($this->name);
     $this->storePassFromMail();
+    output('Waiting 30 sec after creation');
+    sleep(30);
   }
 
   protected function checkEmail() {
@@ -39,8 +41,9 @@ class DoceanServer {
   }
 
   protected function storePassFromMail() {
-    for ($i=1; $i<=3; $i++) {
-      output("Waiting for mail ($i)");
+    output("Waiting for mail (10 min limit)");
+    for ($i=1; $i<=120; $i++) {
+      print '.';
       if (($files = $this->findMailFiles())) break;
       sleep(5);
     }

@@ -41,6 +41,7 @@ abstract class SmanInstance extends SmanInstaller {
       'apt-get update',
       'apt-get -y install mc git-core',
     ]);
+    $this->createUser();
   }
 
   function installPhp() {
@@ -62,8 +63,8 @@ abstract class SmanInstance extends SmanInstaller {
     $this->installPhp();
     print $this->ssh->exec([
       'apt-get -y install php5-memcached php5-fpm php5-gd php5-mysql',
-      'apt-get -y install memcached',
-      'apt-get -y install imagemagick',
+      //'apt-get -y install memcached',
+      //'apt-get -y install imagemagick',
     ]);
     print $this->ssh->exec([
       'sed -i "s|www-data|user|g" /etc/php5/fpm/pool.d/www.conf',

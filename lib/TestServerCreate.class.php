@@ -3,7 +3,9 @@
 class TestServerCreate extends NgnTestCase {
 
   function test() {
-    SmanCore::create('projects');
+    $name = SmanCore::create('projects');
+    $this->assertTrue((bool)strstr(`curl -G http://scripts.$name.sitedraw.ru/c/allErrors`, '<?xml'));
+
   }
 
 }

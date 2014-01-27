@@ -11,24 +11,35 @@ class SmanCore {
    * @param integer|null Уникальный идентификатор сервера
    */
   static function create($type, $id = null) {
-    if (!$id) $id = self::lastId($type) + 1;
+    if (!$id) $id = self::lastId($type) + 10;
     $name = $type.$id;
     (new DoceanServer($name))->create();
-    output('Waiting 15 sec after creation');
-    sleep(15);
     self::createDns($name);
     self::createInstance($type, $name);
+    return $name;
+  }
+
+  static function d() {
+    $name = 'projects103';
+    $ip = '1.1.1.1';
+    $ssh = (new Ssh((new SshDefaultConnection(Config::getSubVar('servers', 'dnsMaster'), 'root'))));
+    $domain = self::createZone($name, $ip, $ssh);
+    print "\n---------\n";
+    print `dig A asd.$domain @ns1.majexa.ru`;
   }
 
   static function a() {
     $type = 'projects';
-    $id = self::lastId($type) + 1;
-    $name = $type.$id;
-    (new DoceanServer($name))->create();
+    $name = 'projects1';
+    //(new DoceanServer($name))->create();
+    self::createDns($name);
+    return;
+    self::createInstance($type, $name);
+
     $ssh = SmanInstance::get($type, $name)->ssh;
     print $ssh->exec([
       'apt-get update',
-      'apt-get -y install php5-fpm',
+      'apt-get -y install php5-cli php5-fpm',
     ]);
     print $ssh->exec([
       'sed -i "s|www-data|user|g" /etc/php5/fpm/pool.d/www.conf',
@@ -41,8 +52,13 @@ class SmanCore {
     $type = 'projects';
     $name = 'projects1';
     $ssh = SmanInstance::get($type, $name)->ssh;
-    print $ssh->exec('/etc/init.d/php5-fpm restart');
-    print $ssh->exec('ps aux | grep fpm');
+    //print $ssh->exec('/etc/init.d/php5-fpm restart');
+    print $ssh->exec('sudo /etc/init.d/nginx restart');
+    //print $ssh->exec(['','cd /home/user/ngn-env/config/nginx','cat scripts']);
+  }
+
+  static function c() {
+    Docean::get()->deleteServer('projects1');
   }
 
   static function createInstance($type, $name) {
@@ -78,11 +94,7 @@ TEXT;
         output3('Choose server name');
         return;
       }
-      $name = $parts[1];
-      // @todo ssh-keygen -f "/home/user/.ssh/known_hosts" -R 107.170.28.146
-      SmanConfig::removeSubVar('userPasswords', Docean::get()->server($name)['ip_address']); // user password
-      SmanConfig::removeSubVar('doceanServers', $name); // root password
-      Docean::get()->deleteServer($name);
+      self::delete($parts[1]);
     }
     elseif ($parts[0] == 'list') {
       print '* '.implode("\n* ", Arr::get(Docean::get()->servers(), 'name'))."\n";
@@ -118,6 +130,14 @@ TEXT;
 
   // -------------------------------------------
 
+  static function delete($name) {
+    $host = Docean::get()->server($name)['ip_address'];
+    `ssh-keygen -f "/home/user/.ssh/known_hosts" -R $host`;
+    SmanConfig::removeSubVar('userPasswords', $host); // user password
+    SmanConfig::removeSubVar('doceanServers', $name); // root password
+    Docean::get()->deleteServer($name);
+  }
+
   static function checkConfig() {
     Config::getVar('doceanAccess');
     Config::getSubVar('botEmail', 'domain');
@@ -137,16 +157,16 @@ TEXT;
   }
 
   static function createDns($name) {
-    $dnsHost = Config::getSubVar('servers', 'dnsMaster');
-    $ssh = (new Ssh((new SshDefaultConnection($dnsHost, 'root'))));
+    $ssh = (new Ssh((new SshDefaultConnection(Config::getSubVar('servers', 'dnsMaster'), 'root'))));
     self::createZone($name, Docean::get()->server($name)['ip_address'], $ssh);
-    self::createZone('*.'.$name, Docean::get()->server($name)['ip_address'], $ssh);
   }
 
   static protected function createZone($name, $host, Ssh $ssh) {
-    $cmd = str_replace('"', '\\"', '(new DnsServer)->replaceZone("'.$name.'.'.Config::getVar('baseDomain').'", "'.$host.'")');
+    $domain = $name.'.'.Config::getVar('baseDomain');
+    $cmd = str_replace('"', '\\"', '(new DnsServer)->replaceZone(["'.$domain.'", "*.'.$domain.'"], "'.$host.'")');
     $cmd = Cli::addRunPaths($cmd, 'NGN_ENV_PATH/dns-server/lib');
     print $ssh->exec($cmd);
+    return $domain;
   }
 
   static function createEnv($name) {

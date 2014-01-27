@@ -15,12 +15,13 @@ class DoceanApi {
   }
 
   function createServer($name, array $opts = []) {
+    if (Arr::getValueByKey($this->servers(), 'name', $name)) throw new Exception("Server with name '$name' already exists");
     output("Creating server '$name'");
     return $this->api('droplets/new', array_merge([
       'size_id'   => 66,
       'image_id'  => 1505447, // ubuntu 12.04 x64
       //'image_id'  => 1505527, // ubuntu 12.04 x32
-      'region_id' => 4, // amsterdam... US: 1, 4
+      'region_id' => 5, // Amsterdam: 5, US: 1, 4
       'name'      => $name
     ], $opts));
   }
