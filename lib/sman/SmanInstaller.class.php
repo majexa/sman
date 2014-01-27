@@ -2,7 +2,8 @@
 
 abstract class SmanInstaller {
 
-  protected $sshConnection, $scp, $sftp, $ssh, $gitUrl, $user;
+  protected $sshConnection, $scp, $sftp, $gitUrl, $user;
+  public $ssh;
 
   function __construct(SshConnection $sshConnection) {
     $this->sshConnection = $sshConnection;

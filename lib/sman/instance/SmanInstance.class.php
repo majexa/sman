@@ -20,6 +20,7 @@ abstract class SmanInstance extends SmanInstaller {
   function install() {
     $this->installCore();
     parent::install();
+    print $this->ssh->exec('ps aux | grep fpm');
   }
 
   protected function createUser() {
@@ -42,7 +43,7 @@ abstract class SmanInstance extends SmanInstaller {
     ]);
   }
 
-  protected function installPhp() {
+  function installPhp() {
     print $this->ssh->exec([
       'apt-get -y install python-software-properties',
       'apt-get update',
@@ -57,17 +58,20 @@ abstract class SmanInstance extends SmanInstaller {
     ]);
   }
 
-  protected function installPhpFull() {
+  function installPhpFull() {
     $this->installPhp();
     print $this->ssh->exec([
       'apt-get -y install php5-memcached php5-fpm php5-gd php5-mysql',
       'apt-get -y install memcached',
       'apt-get -y install imagemagick',
     ]);
-    print $this->ssh->exec('/etc/inir.d/php5-fpm start');
+    print $this->ssh->exec([
+      'sed -i "s|www-data|user|g" /etc/php5/fpm/pool.d/www.conf',
+      '/etc/init.d/php5-fpm restart'
+    ]);
   }
 
-  protected function installNginx() {
+  function installNginx() {
     $this->ssh->exec([
       'apt-get -y install nginx',
       'cd /etc/nginx',
@@ -75,11 +79,10 @@ abstract class SmanInstance extends SmanInstaller {
       'sed -i "/^\s*$/d" nginx.conf',
       'sed -i "s|^\s*include /etc/nginx/sites-enabled/\*;|\tserver_names_hash_bucket_size 64;\\n\tinclude /home/user/ngn-env/config/nginxProjects/\*;\\n\tinclude /home/user/ngn-env/config/nginx/*;|g" nginx.conf',
       'sed -i "s|www-data|user|g" nginx.conf',
-      'sed -i "s|www-data|user|g" /etc/php5/fpm/pool.d/www.conf',
     ]);
   }
 
-  protected function installRabbitmq() {
+  function installRabbitmq() {
     $this->ssh->exec([
       'cd /tmp',
       'echo -e "deb http://www.rabbitmq.com/debian/ testing main" >> /etc/apt/sources.list',
@@ -95,7 +98,7 @@ abstract class SmanInstance extends SmanInstaller {
   protected function installPiwik() {
   }
 
-  protected function installMail() {
+  function installMail() {
     print $this->ssh->exec([
       'export DEBIAN_FRONTEND=noninteractive',
       'apt-get -y install postfix',
