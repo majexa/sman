@@ -11,28 +11,23 @@ class SmanCore {
    * @param integer|null Уникальный идентификатор сервера
    */
   static function create($type, $id = null) {
-    if (!$id) $id = self::lastId($type) + 10;
+    if (!$id) $id = self::lastId($type) + 1;
     $name = $type.$id;
     (new DoceanServer($name))->create();
-    self::createDns($name);
+    self::createZone($name);
     self::createInstance($type, $name);
     return $name;
   }
 
   static function d() {
-    $name = 'projects103';
-    $ip = '1.1.1.1';
-    $ssh = (new Ssh((new SshDefaultConnection(Config::getSubVar('servers', 'dnsMaster'), 'root'))));
-    $domain = self::createZone($name, $ip, $ssh);
-    print "\n---------\n";
-    print `dig A asd.$domain @ns1.majexa.ru`;
+    self::deleteDns('projects333');
   }
 
   static function a() {
     $type = 'projects';
     $name = 'projects1';
     //(new DoceanServer($name))->create();
-    self::createDns($name);
+    self::createZone($name);
     return;
     self::createInstance($type, $name);
 
@@ -131,6 +126,7 @@ TEXT;
   // -------------------------------------------
 
   static function delete($name) {
+    self::deleteDns($name);
     $host = Docean::get()->server($name)['ip_address'];
     `ssh-keygen -f "/home/user/.ssh/known_hosts" -R $host`;
     SmanConfig::removeSubVar('userPasswords', $host); // user password
@@ -156,16 +152,26 @@ TEXT;
     return $max;
   }
 
-  static function createDns($name) {
-    $ssh = (new Ssh((new SshDefaultConnection(Config::getSubVar('servers', 'dnsMaster'), 'root'))));
-    self::createZone($name, Docean::get()->server($name)['ip_address'], $ssh);
+  static function dnsSsh() {
+    static $ssh;
+    if (isset($ssh)) return $ssh;
+    return $ssh = (new SshStrict((new SshDefaultConnection(Config::getSubVar('servers', 'dnsMaster'), 'root'))));
   }
 
-  static protected function createZone($name, $host, Ssh $ssh) {
+  static function createZone($name) {
+    self::_createZone($name, Docean::get()->server($name)['ip_address']);
+  }
+
+  static function deleteDns($name) {
+    $domain = $name.'.'.Config::getVar('baseDomain');
+    $cmd = str_replace('"', '\\"', '(new DnsServer)->deleteZone(["'.$domain.'", "*.'.$domain.'"])');
+    print self::dnsSsh()->exec(Cli::addRunPaths($cmd, 'NGN_ENV_PATH/dns-server/lib'));
+  }
+
+  static protected function _createZone($name, $host) {
     $domain = $name.'.'.Config::getVar('baseDomain');
     $cmd = str_replace('"', '\\"', '(new DnsServer)->replaceZone(["'.$domain.'", "*.'.$domain.'"], "'.$host.'")');
-    $cmd = Cli::addRunPaths($cmd, 'NGN_ENV_PATH/dns-server/lib');
-    print $ssh->exec($cmd);
+    print self::dnsSsh()->exec(Cli::addRunPaths($cmd, 'NGN_ENV_PATH/dns-server/lib'));
     return $domain;
   }
 
