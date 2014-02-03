@@ -1,6 +1,6 @@
 <?php
 
-class TestServerCreate extends NgnTestCase {
+abstract class TestServerCreate extends NgnTestCase {
 
   function test() {
     $name = SmanCore::create('projects');
