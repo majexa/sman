@@ -20,7 +20,10 @@ class SmanCore {
   }
 
   static function d() {
-    self::deleteDns('projects333');
+    $domain = 'gajexa.ru';
+    $host = '1.1.1.1';
+    $cmd = str_replace('"', '\\"', '(new DnsServer)->replaceZone(["'.$domain.'"], "'.$host.'")');
+    print self::dnsSsh()->exec(Cli::addRunPaths($cmd, 'NGN_ENV_PATH/dns-server/lib'));
   }
 
   static function a() {
