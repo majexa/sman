@@ -2,7 +2,11 @@
 
 if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
 
-class SmanCore {
+class SmanCore extends CliHelp {
+
+  function prefix() {
+    return 'sman';
+  }
 
   /**
    * Создаёт сервер, инсталирует среду
@@ -18,7 +22,7 @@ class SmanCore {
     self::createInstance($type, $name);
     return $name;
   }
-
+/*
   static function d() {
     $domain = 'gajexa.ru';
     $host = '1.1.1.1';
@@ -58,7 +62,7 @@ class SmanCore {
   static function c() {
     Docean::get()->deleteServer('projects1');
   }
-
+*/
   static function createInstance($type, $name) {
     self::checkConfig();
     SmanInstance::get($type, $name)->install();
