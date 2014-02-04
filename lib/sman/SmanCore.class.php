@@ -8,11 +8,18 @@ class SmanCore extends CliHelp {
     return 'sman';
   }
 
+  protected function asd(ReflectionMethod $method) {
+    $options = ClassCore::getDocComment($method->getDocComment(), 'options');
+    if (!$options) return [];
+    return array_map('trim', explode(',', $options));
+  }
+
+
   /**
    * Создаёт сервер, инсталирует среду
    *
    * @param string        projects|serverManager|dnsMaster|dnsSlave
-   * @param integer|null Уникальный идентификатор сервера
+   * @param integer|null  Уникальный идентификатор сервера
    */
   static function create($type, $id = null) {
     if (!$id) $id = self::lastId($type) + 1;
