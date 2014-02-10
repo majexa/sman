@@ -1,6 +1,8 @@
 <?php
 
-class SmanSman {
+if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
+
+class Sman {
 
   /**
    * Создаёт сервер, инсталирует среду
