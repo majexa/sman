@@ -2,7 +2,7 @@
 
 class SmanInstanceServerManager extends SmanInstance {
 
-  function _install() {
+  protected function _install() {
     $this->installPhp();
     $this->installMail();
   }

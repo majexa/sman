@@ -2,7 +2,7 @@
 
 class SmanEnvServerManager extends SmanEnv {
 
-  function _install() {
+  protected function _install() {
     //$this->cloneNgnEnv(['ngn', 'ci', 'run', 'sman']);
     $this->createConfig();
   }

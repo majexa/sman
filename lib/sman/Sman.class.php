@@ -15,14 +15,14 @@ class Sman {
     $name = $type.$id;
     (new DoceanServer($name))->create();
     $this->createZone($name);
-    $this->createInstance($type, $name);
+    $this->createInstance($name);
     return $name;
   }
 
-  protected function createInstance($type, $name) {
+  protected function createInstance($name) {
     $this->checkConfig();
-    SmanInstance::get($type, $name)->install();
-    SmanEnv::get($type, $name)->install();
+    SmanInstance::get($name)->install();
+    SmanEnv::get($name)->install();
   }
 
   function info($name) {

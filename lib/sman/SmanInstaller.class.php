@@ -17,13 +17,13 @@ abstract class SmanInstaller {
     $this->_install();
   }
 
-  abstract function _install();
+  abstract protected function _install();
 
   static $classPrefix;
 
   /**
    * @return SmanInstaller
    */
-  abstract static function get($type, $name);
+  abstract static function get($name);
 
 }

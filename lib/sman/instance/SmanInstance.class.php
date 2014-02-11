@@ -6,12 +6,11 @@
 abstract class SmanInstance extends SmanInstaller {
 
   /**
-   * @param $type
-   * @param $name Server Name
+   * @param string Server Name
    * @return SmanInstance
    */
-  static function get($type, $name) {
-    $class = 'SmanInstance'.ucfirst($type);
+  static function get($name) {
+    $class = 'SmanInstance'.ucfirst(SmanCore::serverType($name));
     return new $class(new DoceanRootConnection($name));
   }
 
