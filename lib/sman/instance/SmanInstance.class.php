@@ -7,7 +7,7 @@ abstract class SmanInstance extends SmanInstaller {
 
   /**
    * @param $type
-   * @param $name
+   * @param $name Server Name
    * @return SmanInstance
    */
   static function get($type, $name) {
