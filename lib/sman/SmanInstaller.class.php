@@ -22,8 +22,14 @@ abstract class SmanInstaller {
   static $classPrefix;
 
   /**
-   * @return SmanInstaller
+   * @param string
+   * @return SmanInstance
    */
-  abstract static function get($name);
+  static function get($name) {
+    $class = static::getClass($name);
+    return new $class($name);
+  }
+
+  abstract static function getClass($name);
 
 }

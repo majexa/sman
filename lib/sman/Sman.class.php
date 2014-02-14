@@ -5,10 +5,10 @@ if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
 class Sman {
 
   /**
-   * Создаёт сервер, инсталирует среду
+   * Создаёт сервер, инсталлирует среду
    *
    * @param string        projects|serverManager|dnsMaster|dnsSlave
-   * @param integer|null  Уникальный идентификатор сервера
+   * @param integer|null Уникальный идентификатор сервера
    */
   function create($type, $id = null) {
     if (!$id) $id = self::lastId($type) + 1;
@@ -25,13 +25,18 @@ class Sman {
     SmanEnv::get($name)->install();
   }
 
-  function info($name) {
-    $server = Docean::get()->server($name);
+  /**
+   * Выводит информацию о сервере
+   *
+   * @param $serverName
+   */
+  function info($serverName) {
+    $server = Docean::get()->server($serverName);
     $host = $server['ip_address'];
-    $rootPassword = Config::getSubVar('doceanServers', $name);
+    $rootPassword = Config::getSubVar('doceanServers', $serverName);
     $userPassword = Config::getSubVar('userPasswords', $host);
     print <<<TEXT
-*-- Server: $name --*
+*-- Server: $serverName --*
 Host: $host
 Root password: $rootPassword
 User password: $userPassword
@@ -39,17 +44,25 @@ User password: $userPassword
 TEXT;
   }
 
+  /**
+   * Выводит список серверов
+   */
   function lst() {
-    print implode("\n* ", Arr::get(Docean::get()->servers(), 'name'))."\n";
+    print '* '.implode("\n* ", Arr::get(Docean::get()->servers(), 'name'))."\n";
   }
 
-  function delete($name) {
-    $this->deleteDns($name);
-    $host = Docean::get()->server($name)['ip_address'];
+  /**
+   * Удаляет сервер
+   *
+   * @param $serverName
+   */
+  function delete($serverName) {
+    $this->deleteDns($serverName);
+    $host = Docean::get()->server($serverName)['ip_address'];
     `ssh-keygen -f "/home/user/.ssh/known_hosts" -R $host`;
     SmanConfig::removeSubVar('userPasswords', $host); // user password
-    SmanConfig::removeSubVar('doceanServers', $name); // root password
-    Docean::get()->deleteServer($name);
+    SmanConfig::removeSubVar('doceanServers', $serverName); // root password
+    Docean::get()->deleteServer($serverName);
   }
 
   protected function checkConfig() {
@@ -83,7 +96,10 @@ TEXT;
   protected function deleteDns($name) {
     $domain = $name.'.'.Config::getVar('baseDomain');
     $cmd = str_replace('"', '\\"', '(new DnsServer)->deleteZone(["'.$domain.'", "*.'.$domain.'"])');
-    print $this->dnsSsh()->exec(Cli::addRunPaths($cmd, 'NGN_ENV_PATH/dns-server/lib'));
+    try {
+      print $this->dnsSsh()->exec(Cli::addRunPaths($cmd, 'NGN_ENV_PATH/dns-server/lib'));
+    } catch (Exception $e) {
+    }
   }
 
   protected function _createZone($name, $host) {
@@ -97,6 +113,30 @@ TEXT;
     $host = Docean::get()->server($name)['ip_address'];
     $sshConnection = new SshPasswordConnection($host, 'user', Config::getSubVar('userPasswords', $host, true));
     SmanEnv::get('projects', $sshConnection)->install();
+  }
+
+  /**
+   * Интерфейс для установки программных пакетов на сервер
+   *
+   * @param $serverName
+   * @return CliResultClass
+   */
+  function instance($serverName) {
+    return new CliResultClass(SmanInstance::getClass($serverName), 'instance');
+  }
+
+  /**
+   * Интерфейс для установки пакетов ngn-среды на сервер
+   *
+   * @param $serverName
+   * @return CliResultClass
+   */
+  function env($serverName) {
+    return new CliResultClass(SmanEnv::getClass($serverName), 'env');
+  }
+
+  function asd() {
+    return new CliResultClass('SmanAsd', 'asd');
   }
 
 }

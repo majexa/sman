@@ -5,22 +5,16 @@
  */
 abstract class SmanEnv extends SmanInstaller {
 
-  /**
-   * @param $type
-   * @param $name
-   * @return SmanInstance
-   */
-  static function get($name) {
-    $class = 'SmanEnv'.ucfirst(SmanCore::serverType($name));
-    return new $class($name);
+  static function getClass($name) {
+    return 'SmanEnv'.ucfirst(SmanCore::serverType($name));
   }
 
   protected $user = 'user';
   protected $name;
 
-  function __construct($name) {
-    parent::__construct(new DoceanUserConnection($name));
-    $this->name = $name;
+  function __construct($serverName) {
+    parent::__construct(new DoceanUserConnection($serverName));
+    $this->name = $serverName;
   }
 
   protected function cloneNgnEnv($repos = []) {
@@ -37,6 +31,9 @@ abstract class SmanEnv extends SmanInstaller {
     $this->_install();
   }
 
+  /**
+   * Создаёт стандартный конфиг для сервера
+   */
   function createConfig() {
     $this->ssh->exec([
       "mkdir -p ~/ngn-env/config/nginx",

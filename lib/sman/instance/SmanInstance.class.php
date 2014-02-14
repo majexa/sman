@@ -5,13 +5,19 @@
  */
 abstract class SmanInstance extends SmanInstaller {
 
+  protected $serverName;
+
+  function __construct($serverName) {
+    parent::__construct(new DoceanRootConnection($serverName));
+    $this->serverName = $serverName;
+  }
+
   /**
    * @param string Server Name
-   * @return SmanInstance
+   * @return string
    */
-  static function get($name) {
-    $class = 'SmanInstance'.ucfirst(SmanCore::serverType($name));
-    return new $class(new DoceanRootConnection($name));
+  static function getClass($name) {
+    return 'SmanInstance'.ucfirst(SmanCore::serverType($name));
   }
 
   protected $user = 'root';
@@ -35,6 +41,9 @@ abstract class SmanInstance extends SmanInstaller {
     ]);
   }
 
+  /**
+   * mc, git-core
+   */
   function installCore() {
     print $this->ssh->exec([
       'apt-get update',
@@ -43,6 +52,9 @@ abstract class SmanInstance extends SmanInstaller {
     $this->createUser();
   }
 
+  /**
+   * php5.4, phpUnit; extensions: pear, curl
+   */
   function installPhp() {
     print $this->ssh->exec([
       'apt-get -y install python-software-properties',
@@ -58,12 +70,15 @@ abstract class SmanInstance extends SmanInstaller {
     ]);
   }
 
+  /**
+   * php5.4, phpUnit, memcached, imagemagick; extensions: pear, curl, memcached, fpm, gd, mysql
+   */
   function installPhpFull() {
     $this->installPhp();
     print $this->ssh->exec([
       'apt-get -y install php5-memcached php5-fpm php5-gd php5-mysql',
-      //'apt-get -y install memcached',
-      //'apt-get -y install imagemagick',
+      'apt-get -y install memcached',
+      'apt-get -y install imagemagick',
     ]);
     print $this->ssh->exec([
       'sed -i "s|www-data|user|g" /etc/php5/fpm/pool.d/www.conf',
@@ -98,6 +113,9 @@ abstract class SmanInstance extends SmanInstaller {
   protected function installPiwik() {
   }
 
+  /**
+   * postfix
+   */
   function installMail() {
     print $this->ssh->exec([
       'export DEBIAN_FRONTEND=noninteractive',
@@ -108,17 +126,23 @@ abstract class SmanInstance extends SmanInstaller {
     ]);
   }
 
+  /**
+   * Создаёт DNS-записить базового хоста сервера
+   */
   function installDns() {
-    $this->ei->addSshKey($this->name, 'dnsMaster', 'user');
+    $this->ei->addSshKey($this->serverName, 'dnsMaster', 'user');
     $this->createBaseZone();
   }
 
-  function createBaseZone() {
-    $this->ei->cmd('dnsMaster', Cli::formatRunCmd("(new DnsServer)->createZone('{$this->baseDomain()}', '{$this->ei->api->server($this->name)['ip_address']}')", 'NGN_ENV_PATH/dns-server/lib'));
+  protected function createBaseZone() {
+    $this->ei->cmd('dnsMaster', Cli::formatRunCmd("(new DnsServer)->createZone('{$this->baseDomain()}', '{$this->ei->api->server($this->serverName)['ip_address']}')", 'NGN_ENV_PATH/dns-server/lib'));
   }
 
+  /**
+   * Удаляет DNS-записить базового хоста сервера
+   */
   function removeDns() {
-    $this->ei->removeSshKey($this->name, 'dnsMaster', 'user');
+    $this->ei->removeSshKey($this->serverName, 'dnsMaster', 'user');
     $this->ei->cmd('dnsMaster', Cli::formatRunCmd("(new DnsServer)->deleteZone('{$this->baseDomain()}')", 'NGN_ENV_PATH/dns-server/lib'));
   }
 
