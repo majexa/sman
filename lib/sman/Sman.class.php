@@ -135,8 +135,4 @@ TEXT;
     return new CliResultClass(SmanEnv::getClass($serverName), 'env');
   }
 
-  function asd() {
-    return new CliResultClass('SmanAsd', 'asd');
-  }
-
 }
