@@ -92,10 +92,24 @@ abstract class SmanInstance extends SmanInstaller {
       'cd /etc/nginx',
       'sed -i "s/^\s*#.*$//g" nginx.conf',
       'sed -i "/^\s*$/d" nginx.conf',
-      'sed -i "s|^\s*include /etc/nginx/sites-enabled/\*;|\tserver_names_hash_bucket_size 64;\\n\tinclude /home/user/ngn-env/config/nginxProjects/\*;\\n\tinclude /home/user/ngn-env/config/nginx/*;|g" nginx.conf',
       'sed -i "s|www-data|user|g" nginx.conf',
     ]);
   }
+
+  function updateNginxIncludes() {
+    $this->ssh->exec([
+      'sed -i "s|^'. //
+      '\s*include /etc/nginx/sites-enabled/\*;'. //
+      '|'. //
+      '\tserver_names_hash_bucket_size 64;\\n'. //
+      '\tinclude /home/user/ngn-env/config/nginx/static/*;\\n'. //
+      '\tinclude /home/user/ngn-env/config/nginx/projects/*;\\n'. //
+      '\tinclude /home/user/ngn-env/config/nginx/system/*;'. //
+      '|g" nginx.conf'
+    ]);
+  }
+
+  // protected function
 
   function installRabbitmq() {
     $this->ssh->exec([
