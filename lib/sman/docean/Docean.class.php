@@ -23,7 +23,7 @@ class Docean extends ObjectMapper {
 
   function server($name, $strict = true) {
     if (!($r = Arr::getValueByKey($this->api->servers(), 'name', $name))) {
-      if ($strict) throw new NotFoundException("server $name");
+      if ($strict) throw new NotFoundException("server '$name'");
       else return false;
     }
     return $r;

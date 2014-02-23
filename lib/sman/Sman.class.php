@@ -57,7 +57,7 @@ TEXT;
    * @param $serverName
    */
   function delete($serverName) {
-    $this->deleteDns($serverName);
+    $this->deleteZone($serverName);
     $host = Docean::get()->server($serverName)['ip_address'];
     `ssh-keygen -f "/home/user/.ssh/known_hosts" -R $host`;
     SmanConfig::removeSubVar('userPasswords', $host); // user password
@@ -89,11 +89,21 @@ TEXT;
     return $ssh = (new SshStrict((new SshDefaultConnection(Config::getSubVar('servers', 'dnsMaster'), 'root'))));
   }
 
-  protected function createZone($name) {
+  /**
+   * Создаёт базовую DNS-зону сервера
+   *
+   * @param $name
+   */
+  function createZone($name) {
     $this->_createZone($name, Docean::get()->server($name)['ip_address']);
   }
 
-  protected function deleteDns($name) {
+  /**
+   * Удаляет базовую DNS-зону сервера
+   *
+   * @param $name
+   */
+  function deleteZone($name) {
     $domain = $name.'.'.Config::getVar('baseDomain');
     $cmd = str_replace('"', '\\"', '(new DnsServer)->deleteZone(["'.$domain.'", "*.'.$domain.'"])');
     try {
