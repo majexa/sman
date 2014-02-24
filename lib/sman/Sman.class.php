@@ -94,7 +94,7 @@ TEXT;
    *
    * @param $name
    */
-  function createZone($name) {
+  protected function createZone($name) {
     $this->_createZone($name, Docean::get()->server($name)['ip_address']);
   }
 
@@ -103,7 +103,7 @@ TEXT;
    *
    * @param $name
    */
-  function deleteZone($name) {
+  protected function deleteZone($name) {
     $domain = $name.'.'.Config::getVar('baseDomain');
     $cmd = str_replace('"', '\\"', '(new DnsServer)->deleteZone(["'.$domain.'", "*.'.$domain.'"])');
     try {
