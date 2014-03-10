@@ -3,7 +3,7 @@
 /**
  * Instance installer
  */
-abstract class SmanInstance extends SmanInstaller {
+abstract class SmanInstanceAbstract extends SmanInstaller {
 
   protected $serverName;
 
@@ -71,18 +71,28 @@ abstract class SmanInstance extends SmanInstaller {
   }
 
   /**
-   * php5.4, phpUnit, memcached, imagemagick; extensions: pear, curl, memcached, fpm, gd, mysql
+   * php5.4, phpUnit; extensions: pear, curl, fpm, memcached
    */
-  function installPhpFull() {
+  function installPhpWeb() {
     $this->installPhp();
     print $this->ssh->exec([
-      'apt-get -y install php5-memcached php5-fpm php5-gd php5-mysql',
-      'apt-get -y install memcached',
-      'apt-get -y install imagemagick',
+      'apt-get -y install php5-memcached php5-fpm',
     ]);
     print $this->ssh->exec([
       'sed -i "s|www-data|user|g" /etc/php5/fpm/pool.d/www.conf',
       '/etc/init.d/php5-fpm restart'
+    ]);
+  }
+
+  /**
+   * php5.4, phpUnit, memcached, imagemagick; extensions: pear, curl, memcached, fpm, gd, mysql
+   */
+  function installPhpFull() {
+    $this->installPhpWeb();
+    print $this->ssh->exec([
+      'apt-get -y install php5-gd php5-mysql',
+      'apt-get -y install memcached',
+      'apt-get -y install imagemagick',
     ]);
   }
 

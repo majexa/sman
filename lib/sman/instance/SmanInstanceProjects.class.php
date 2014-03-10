@@ -1,6 +1,6 @@
 <?php
 
-class SmanInstanceProjects extends SmanInstance {
+class SmanInstanceProjects extends SmanInstanceAbstract {
 
   protected function _install() {
     $this->installPhpFull();

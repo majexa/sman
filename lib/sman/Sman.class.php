@@ -21,8 +21,8 @@ class Sman {
 
   protected function createInstance($name) {
     $this->checkConfig();
-    SmanInstance::get($name)->install();
-    SmanEnv::get($name)->install();
+    SmanInstanceAbstract::get($name)->install();
+    SmanEnvAbstract::get($name)->install();
   }
 
   /**
@@ -86,7 +86,7 @@ TEXT;
   protected function dnsSsh() {
     static $ssh;
     if (isset($ssh)) return $ssh;
-    return $ssh = (new SshStrict((new SshDefaultConnection(Config::getSubVar('servers', 'dnsMaster'), 'root'))));
+    return $ssh = (new Ssh2Strict((new Ssh2DefaultConnection(Config::getSubVar('servers', 'dnsMaster'), 'root'))));
   }
 
   /**
@@ -121,8 +121,8 @@ TEXT;
 
   protected function createEnv($name) {
     $host = Docean::get()->server($name)['ip_address'];
-    $sshConnection = new SshPasswordConnection($host, 'user', Config::getSubVar('userPasswords', $host, true));
-    SmanEnv::get('projects', $sshConnection)->install();
+    $sshConnection = new Ssh2PasswordConnection($host, 'user', Config::getSubVar('userPasswords', $host, true));
+    SmanEnvAbstract::get('projects', $sshConnection)->install();
   }
 
   /**
@@ -132,7 +132,7 @@ TEXT;
    * @return CliResultClass
    */
   function instance($serverName) {
-    return new CliResultClass(SmanInstance::getClass($serverName), 'instance');
+    return new CliHelpResultClass(SmanInstanceAbstract::getClass($serverName), 'instance');
   }
 
   /**
@@ -142,7 +142,7 @@ TEXT;
    * @return CliResultClass
    */
   function env($serverName) {
-    return new CliResultClass(SmanEnv::getClass($serverName), 'env');
+    return new CliHelpResultClass(SmanEnvAbstract::getClass($serverName), 'env');
   }
 
 }

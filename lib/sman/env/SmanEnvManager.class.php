@@ -1,6 +1,6 @@
 <?php
 
-class SmanEnvManager extends SmanEnv {
+class SmanEnvManager extends SmanEnvAbstract {
 
   protected function _install() {
     //$this->cloneNgnEnv(['ngn', 'ci', 'run', 'sman']);

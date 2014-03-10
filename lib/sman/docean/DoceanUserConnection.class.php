@@ -1,6 +1,6 @@
 <?php
 
-class DoceanUserConnection extends SshPasswordConnection {
+class DoceanUserConnection extends Ssh2PasswordConnection {
 
   function __construct($serverName) {
     $host = Docean::get()->server($serverName)['ip_address'];

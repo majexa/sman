@@ -5,11 +5,11 @@ abstract class SmanInstaller {
   protected $sshConnection, $scp, $sftp, $gitUrl, $user;
   public $ssh;
 
-  function __construct(SshConnection $sshConnection) {
+  function __construct(Ssh2Connection $sshConnection) {
     $this->sshConnection = $sshConnection;
-    $this->scp = new SshScp($sshConnection);
-    $this->sftp = new SshSftp($sshConnection);
-    $this->ssh = new Ssh($sshConnection);
+    $this->scp = new Ssh2Scp($sshConnection);
+    $this->sftp = new Ssh2Sftp($sshConnection);
+    $this->ssh = new Ssh2($sshConnection);
     $this->gitUrl = Config::getVar('git');
   }
 
@@ -23,7 +23,7 @@ abstract class SmanInstaller {
 
   /**
    * @param string
-   * @return SmanInstance
+   * @return SmanInstanceAbstract
    */
   static function get($name) {
     $class = static::getClass($name);
