@@ -19,7 +19,14 @@ abstract class SmanEnvAbstract extends SmanInstallerDocean {
       'mkdir ~/ngn-env/logs',
       'cd ~/ngn-env',
     ];
-    foreach ($repos as $repo) $cmd[] = "git clone $this->gitUrl/$repo.git";
+    foreach ($repos as $repo) {
+      $b = '';
+      if (is_array($repo)) {
+        $repo = $repo[0];
+        $b = " -b $repo[1]";
+      }
+      $cmd[] = "git clone{$b} $this->gitUrl/$repo.git";
+    }
     print $this->exec($cmd);
   }
 

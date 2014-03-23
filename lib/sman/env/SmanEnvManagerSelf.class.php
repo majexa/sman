@@ -11,7 +11,7 @@ class SmanEnvManagerSelf extends SmanEnvAbstract {
 
   function _install() {
     $this->exec('su user');
-    $this->cloneRepos(['ngn', 'ci', 'run', 'sman']);
+    $this->cloneRepos([['ngn', 'dev'], 'ci', 'run', 'sman']);
     /*
     $this->exec([
       "mkdir -p ~/ngn-env/config/nginx",
