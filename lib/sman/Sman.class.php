@@ -25,6 +25,9 @@ class Sman {
       if (is_array($cmd)) foreach ($cmd as $v) $s .= "$v\n";
       else $s .= "$cmd\n";
     }
+    $s.= "chmod +x ~/ngn-env/ci\n";
+    $s.= "~/ngn-env/ci onlyUpdate\n";
+    $s.= "ci setup\n";
     file_put_contents(SMAN_PATH.'/web/run.sh', $s);
     print "Done.\n--\n$s";
   }
