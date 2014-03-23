@@ -22,8 +22,8 @@ abstract class SmanEnvAbstract extends SmanInstallerDocean {
     foreach ($repos as $repo) {
       $b = '';
       if (is_array($repo)) {
+        $b = " -b {$repo[1]}";
         $repo = $repo[0];
-        $b = " -b $repo[1]";
       }
       $cmd[] = "git clone{$b} $this->gitUrl/$repo.git";
     }

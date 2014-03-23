@@ -26,7 +26,8 @@ class Sman {
       else $s .= "$cmd\n";
     }
     $s.= "cd ~/ngn-env/ci\n";
-    $s.= "./ci\n";
+    $s.= "chmod +x ci\n";
+    $s.= "./ci onlyUpdate\n";
     $s.= "ci setup\n";
     file_put_contents(SMAN_PATH.'/web/run.sh', $s);
     print "Done.\n--\n$s";
