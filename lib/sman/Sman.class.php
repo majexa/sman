@@ -4,6 +4,10 @@ if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
 
 class Sman {
 
+  function setup() {
+    Cli::confirm('Are U shure?');
+  }
+
   /**
    * Создаёт установщик себя для голой ubuntu/debian
    */
@@ -28,7 +32,7 @@ class Sman {
     $s.= "cd ~/ngn-env/ci\n";
     $s.= "chmod +x ci\n";
     $s.= "./ci update\n";
-    $s.= "ci setup\n";
+    $s.= "sman setup\n";
     file_put_contents(SMAN_PATH.'/web/run.sh', $s);
     print "Done.\n--\n$s";
   }
