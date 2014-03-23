@@ -3,14 +3,7 @@
 /**
  * Instance installer
  */
-abstract class SmanInstanceAbstract extends SmanInstaller {
-
-  protected $serverName;
-
-  function __construct($serverName) {
-    parent::__construct(new DoceanRootConnection($serverName));
-    $this->serverName = $serverName;
-  }
+abstract class SmanInstanceAbstract extends SmanInstallerDocean {
 
   /**
    * @param string Server Name
@@ -25,17 +18,19 @@ abstract class SmanInstanceAbstract extends SmanInstaller {
   function install() {
     $this->installCore();
     parent::install();
-    print $this->ssh->exec('ps aux | grep fpm');
   }
+
+  public $userPass;
 
   protected function createUser() {
     $user = 'user';
-    $pass = Misc::randString(7);
-    $this->ssh->exec([
-      "useradd -m -s /bin/bash -p `openssl passwd -1 $pass` $user",
+    $this->userPass = Misc::randString(7);
+    $this->exec([
+      "useradd -m -s /bin/bash -p `openssl passwd -1 {$this->userPass}` $user",
     ]);
-    SmanConfig::updateSubVar('userPasswords', $this->sshConnection->host, $pass);
-    $this->ssh->exec([
+    if (!$this->disable) SmanConfig::updateSubVar('userPasswords', $this->sshConnection->host, $this->userPass);
+    LogWriter::str('userPasswords', $this->userPass, SMAN_PATH.'/logs');
+    $this->exec([
       'apt-get -y install sudo',
       "echo '%$user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
     ]);
@@ -45,29 +40,37 @@ abstract class SmanInstanceAbstract extends SmanInstaller {
    * mc, git-core
    */
   function installCore() {
-    print $this->ssh->exec([
+    print $this->exec([
       'apt-get update',
       'apt-get -y install mc git-core',
     ]);
     $this->createUser();
   }
 
-  /**
-   * php5.4, phpUnit; extensions: pear, curl
-   */
-  function installPhp() {
-    print $this->ssh->exec([
+  function installPhpBasic() {
+    print $this->exec([
       'apt-get -y install python-software-properties',
       'apt-get update',
       'add-apt-repository --yes ppa:ondrej/php5-oldstable',
       'apt-get update',
-      'apt-get -y install php5-cli php5-dev php-pear php5-curl',
+      'apt-get -y install php5-cli',
     ]);
-    //print $this->ssh->exec('apt-get -y install libssh2-1-dev libssh2-php');
-    print $this->ssh->exec([
+  }
+
+  function installPhpAdvanced() {
+    print $this->exec([
+      'apt-get -y install php5-curl php5-dev php-pear',
+    ]);
+    //print $this->exec('apt-get -y install libssh2-1-dev libssh2-php');
+    print $this->exec([
       'pear channel-discover pear.phpunit.de',
       'pear install phpunit/PHPUnit',
     ]);
+  }
+
+  function installPhp() {
+    $this->installPhpBasic();
+    $this->installPhpAdvanced();
   }
 
   /**
@@ -75,10 +78,10 @@ abstract class SmanInstanceAbstract extends SmanInstaller {
    */
   function installPhpWeb() {
     $this->installPhp();
-    print $this->ssh->exec([
+    print $this->exec([
       'apt-get -y install php5-memcached php5-fpm',
     ]);
-    print $this->ssh->exec([
+    print $this->exec([
       'sed -i "s|www-data|user|g" /etc/php5/fpm/pool.d/www.conf',
       '/etc/init.d/php5-fpm restart'
     ]);
@@ -89,7 +92,7 @@ abstract class SmanInstanceAbstract extends SmanInstaller {
    */
   function installPhpFull() {
     $this->installPhpWeb();
-    print $this->ssh->exec([
+    print $this->exec([
       'apt-get -y install php5-gd php5-mysql',
       'apt-get -y install memcached',
       'apt-get -y install imagemagick',
@@ -97,7 +100,7 @@ abstract class SmanInstanceAbstract extends SmanInstaller {
   }
 
   function installNginx() {
-    $this->ssh->exec([
+    $this->exec([
       'apt-get -y install nginx',
       'cd /etc/nginx',
       'sed -i "s/^\s*#.*$//g" nginx.conf',
@@ -107,7 +110,7 @@ abstract class SmanInstanceAbstract extends SmanInstaller {
   }
 
   function updateNginxIncludes() {
-    $this->ssh->exec([
+    $this->exec([
       'sed -i "s|^'. //
       '\s*include /etc/nginx/sites-enabled/\*;'. //
       '|'. //
@@ -122,7 +125,7 @@ abstract class SmanInstanceAbstract extends SmanInstaller {
   // protected function
 
   function installRabbitmq() {
-    $this->ssh->exec([
+    $this->exec([
       'cd /tmp',
       'echo -e "deb http://www.rabbitmq.com/debian/ testing main" >> /etc/apt/sources.list',
       'wget http://www.rabbitmq.com/rabbitmq-signing-key-public.asc',
@@ -141,8 +144,10 @@ abstract class SmanInstanceAbstract extends SmanInstaller {
    * postfix
    */
   function installMail() {
-    print $this->ssh->exec([
-      'export DEBIAN_FRONTEND=noninteractive',
+    print $this->exec([
+      'debconf-set-selections <<< "postfix postfix/mailname string localhost"',
+      'debconf-set-selections <<< "postfix postfix/main_mailer_type string \'Internet Site\'"',
+      //'export DEBIAN_FRONTEND=noninteractive',
       'apt-get -y install postfix',
       'postconf -e "home_mailbox = Maildir/"',
       '/etc/init.d/postfix restart',
@@ -175,7 +180,7 @@ abstract class SmanInstanceAbstract extends SmanInstaller {
 
   protected function installMysql() {
     $pass = '123';
-    $this->ssh->exec("debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password password $pass'", "debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password_again password $pass'", "apt-get -y install mysql-server");
+    $this->exec("debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password password $pass'", "debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password_again password $pass'", "apt-get -y install mysql-server");
   }
 
 }

@@ -3,7 +3,7 @@
 /**
  * Environment installer
  */
-abstract class SmanEnvAbstract extends SmanInstaller {
+abstract class SmanEnvAbstract extends SmanInstallerDocean {
 
   static function getClass($name) {
     return 'SmanEnv'.ucfirst(SmanCore::serverType($name));
@@ -12,19 +12,15 @@ abstract class SmanEnvAbstract extends SmanInstaller {
   protected $user = 'user';
   protected $name;
 
-  function __construct($serverName) {
-    parent::__construct(new DoceanUserConnection($serverName));
-    $this->name = $serverName;
-  }
-
-  protected function cloneNgnEnv($repos = []) {
+  protected function cloneRepos($repos = []) {
+    $this->gitUrl = Config::getVar('git');
     $cmd = [
       'mkdir ~/ngn-env',
       'mkdir ~/ngn-env/logs',
       'cd ~/ngn-env',
     ];
     foreach ($repos as $repo) $cmd[] = "git clone $this->gitUrl/$repo.git";
-    print $this->ssh->exec($cmd);
+    print $this->exec($cmd);
   }
 
   function install() {
@@ -35,7 +31,7 @@ abstract class SmanEnvAbstract extends SmanInstaller {
    * Создаёт стандартный конфиг для сервера
    */
   function createConfig() {
-    $this->ssh->exec([
+    $this->exec([
       "mkdir -p ~/ngn-env/config/nginx",
       "mkdir ~/ngn-env/config/nginxProjects",
       "mkdir ~/ngn-env/config/remoteServers"

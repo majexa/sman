@@ -5,6 +5,31 @@ if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
 class Sman {
 
   /**
+   * Создаёт установщик себя для голой ubuntu/debian
+   */
+  function genSelfInstaller() {
+    $s = "# Install:\n";
+    if (file_exists(NGN_ENV_PATH.'/config/server.php')) {
+      $server = require NGN_ENV_PATH.'/config/server.php';
+      $s .= "# wget -O - http://sman.{$server['baseDomain']}/run.sh | bash\n#\n";
+    } else {
+      $s .= "# wget -O - http://hostname/run.sh | bash\n#\n";
+    }
+    $instance = new SmanInstanceManagerSelf(false);
+    foreach ($instance->getShCmds() as $cmd) {
+      if (is_array($cmd)) foreach ($cmd as $v) $s .= "$v\n";
+      else $s .= "$cmd\n";
+    }
+    $env = new SmanEnvManagerSelf(false, $instance->userPass);
+    foreach ($env->getShCmds() as $cmd) {
+      if (is_array($cmd)) foreach ($cmd as $v) $s .= "$v\n";
+      else $s .= "$cmd\n";
+    }
+    file_put_contents(SMAN_PATH.'/web/run.sh', $s);
+    print "Done.\n--\n$s";
+  }
+
+  /**
    * Создаёт сервер, инсталлирует среду
    *
    * @param string        projects|serverManager|dnsMaster|dnsSlave
@@ -48,7 +73,7 @@ TEXT;
    * Выводит список серверов
    */
   function lst() {
-    print '* '.implode("\n* ", Arr::get(Docean::get()->servers(), 'name'))."\n";
+    print "* ".Tt()->enumDddd(Docean::get()->servers(), '$name.` - `.$ip_address', "\n* ")."\n";
   }
 
   /**
@@ -120,6 +145,7 @@ TEXT;
   }
 
   protected function createEnv($name) {
+    throw new Exception('something wrong here: SmanEnvAbstract::get...');
     $host = Docean::get()->server($name)['ip_address'];
     $sshConnection = new Ssh2PasswordConnection($host, 'user', Config::getSubVar('userPasswords', $host, true));
     SmanEnvAbstract::get('projects', $sshConnection)->install();
