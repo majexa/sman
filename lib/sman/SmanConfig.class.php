@@ -6,6 +6,10 @@ class ConfigStatic extends Config {
     throw new Exception('define');
   }
 
+  static function updateVar($name, $v) {
+    parent::updateVar(static::path($name), $v);
+  }
+
   static function updateSubVar($name, $k, $v) {
     parent::updateSubVar(static::path($name), $k, $v);
   }

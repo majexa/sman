@@ -5,7 +5,11 @@ if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
 class Sman {
 
   function setup() {
-    Cli::confirm('Are U shure?');
+    if (($r = Cli::prompt('Enter git URL'))) SmanConfig::updateVar('git', $r);
+    if (($r = Cli::prompt('Enter bot email domain (2-nd level domain for this host)'))) SmanConfig::updateSubVar('botEmail', 'domain', $r);
+    if (($r = Cli::prompt('Enter DigitalOcean client ID'))) SmanConfig::updateSubVar('doceanAccess', 'client_id', $r);
+    if (($r = Cli::prompt('Enter DigitalOcean API key'))) SmanConfig::updateSubVar('doceanAccess', 'api_key', $r);
+    //if (($r = Cli::prompt('Enter DNS master host'))) SmanConfig::updateSubVar('servers', 'dnsMaster', $r);
   }
 
   /**
@@ -32,7 +36,7 @@ class Sman {
     $s.= "cd ~/ngn-env/ci\n";
     $s.= "chmod +x ci\n";
     $s.= "./ci update\n";
-    $s.= "sman setup\n";
+    $s.= "echo 'run \"sman setup\"'\n";
     file_put_contents(SMAN_PATH.'/web/run.sh', $s);
     print "Done.\n--\n$s";
   }
