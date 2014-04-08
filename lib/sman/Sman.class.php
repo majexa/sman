@@ -13,7 +13,7 @@ class Sman {
 
   function config() {
     foreach ([
-      ['git', false, 'URL'],
+      ['git', false, 'git URL'],
       ['botEmail', 'domain', 'Bot email domain'],
       ['doceanAccess', 'client_id', 'DigitalOcean Client ID'],
       ['doceanAccess', 'api_key', 'DigitalOcean API Key'],
@@ -43,10 +43,10 @@ class Sman {
       $install = "wget -O - http://path/to/run.sh | bash";
     }
     $s .= "# $install\n#\n";
-    $class = 'SmanInstance'.ucfirst($type).'Self';
+    $class = 'SmanInstance'.ucfirst($type).'Self';//                                      [0 - pure]
     /* @var SmanInstanceAbstract $instance */
     $instance = new $class(false);
-    foreach ($instance->_getShCmds() as $cmd) {
+    foreach ($instance->_getShCmds() as $cmd) {//                                         [1 - soft]
       if (is_array($cmd)) foreach ($cmd as $v) $s .= "$v\n";
       else $s .= "$cmd\n";
     }
@@ -57,7 +57,7 @@ class Sman {
     }
     $s.= "cd ~/ngn-env/ci\n";
     $s.= "chmod +x ci\n";
-    $s.= "./ci update\n";
+    $s.= "./ci update\n"; // @todo ТУТ ПРОБЛЕМА
     $s.= "echo 'run \"sman setup\"'\n";
     file_put_contents(SMAN_PATH.'/web/run.sh', $s);
     print $s;
