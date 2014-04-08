@@ -37,33 +37,43 @@ abstract class SmanEnvAbstract extends SmanInstallerBase {
   /**
    * Создаёт стандартный конфиг для сервера
    */
-  function createConfig() {
+  function createConfig($baseDomain) {
     $this->exec([
       "mkdir -p ~/ngn-env/config/nginx",
-      "mkdir ~/ngn-env/config/nginxProjects",
-      "mkdir ~/ngn-env/config/remoteServers"
+      "mkdir ~/ngn-env/config/nginx/static",
+      "mkdir ~/ngn-env/config/nginx/projects",
+      "mkdir ~/ngn-env/config/nginx/system",
+      //"mkdir ~/ngn-env/config/remoteServers"
     ]);
-    $pass = SmanConfig::getSubVar('userPasswords', $this->sshConnection->host);
-    $this->sftp->putContents('/home/user/ngn-env/config/server.php', "<?php\n\nreturn ".Arr::formatValue([
-        'host'          => $this->sshConnection->host,
-        'baseDomain'    => $this->name.'.'.Config::getVar('baseDomain'),
-        'sType'         => 'prod',
-        'os'            => 'linux',
-        'dbUser'        => 'root',
-        'dbPass'        => $pass,
-        'dbHost'        => 'localhost',
-        'sshUser'       => 'user',
-        'sshPass'       => $pass,
-        'ngnEnvPath'    => '/home/user/ngn-env',
-        'ngnPath'       => "{ngnEnvPath}/ngn",
-        'webserver'     => 'nginx',
-        'webserverP'    => '/etc/init.d/nginx',
-        'nginxFastcgiPassUnixSocket' => true,
-        'prototypeDb'   => 'file',
-        'dnsMasterHost' => Config::getSubVar('servers', 'dnsMaster')
-      ]).';');
-    output2('ok');
-    $this->sftp->putContents('/home/user/ngn-env/config/database.php', <<<CODE
+    /*
+    $server = [
+      'host'          => $this->serverHost(),
+      'baseDomain'    => $this->name.'.'.Config::getVar('baseDomain'),
+      'sType'         => 'prod',
+      'os'            => 'linux',
+      'dbUser'        => 'root',
+      'dbPass'        => $pass,
+      'dbHost'        => 'localhost',
+      'sshUser'       => 'user',
+      'sshPass'       => $pass,
+      'ngnEnvPath'    => '/home/user/ngn-env',
+      'ngnPath'       => "{ngnEnvPath}/ngn",
+      'webserver'     => 'nginx',
+      'webserverP'    => '/etc/init.d/nginx',
+      'nginxFastcgiPassUnixSocket' => true,
+      'prototypeDb'   => 'file',
+      'dnsMasterHost' => Config::getSubVar('servers', 'dnsMaster')
+    ];
+    */
+    if ($this->serverName == 'local') {
+      $pass = file_get_contents('/home/user/.pass');
+    } else {
+      $pass = SmanConfig::getSubVar('userPasswords', $this->serverHost());
+    }
+    //$server = ['baseDomain' => $this->name.'.'.Config::getVar('baseDomain')];
+    $server = ['baseDomain' => $baseDomain];
+    $this->ftp->putContents('/home/user/ngn-env/config/server.php', FileVar::formatVar($server));
+    $this->ftp->putContents('/home/user/ngn-env/config/database.php', <<<CODE
 <?php
 
 setConstant('DB_HOST', 'localhost');

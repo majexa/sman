@@ -9,8 +9,26 @@ abstract class SmanInstallerBase extends SmanInstaller {
    */
   function __construct($serverName) {
     if ($serverName === false) $this->disable = true;
-    if (!$this->disable) parent::__construct(new DoceanRootConnection($serverName));
     $this->serverName = $serverName;
+    if ($this->serverName !== false and $this->serverName != 'local') {
+      $this->sshConnection = new DoceanRootConnection($this->serverName);
+    }
+    parent::__construct();
+  }
+
+  protected function ftp() {
+    if ($this->serverName === false) return false;
+    return $this->serverName == 'local' ? new Ssh2SftpLocal : new Ssh2Sftp($this->sshConnection);
+  }
+
+  protected function shell() {
+    if ($this->serverName === false) return false;
+    return $this->serverName == 'local' ? new Ssh2Local : new Ssh2($this->sshConnection);
+  }
+
+  protected function serverHost() {
+    if ($this->serverName == 'local') return 'localhost';
+    return parent::serverHost();
   }
 
 }

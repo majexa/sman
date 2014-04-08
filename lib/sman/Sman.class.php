@@ -39,12 +39,12 @@ class Sman {
     $class = 'SmanInstance'.ucfirst($type).'Self';
     /* @var SmanInstanceAbstract $instance */
     $instance = new $class(false);
-    foreach ($instance->getShCmds() as $cmd) {
+    foreach ($instance->_getShCmds() as $cmd) {
       if (is_array($cmd)) foreach ($cmd as $v) $s .= "$v\n";
       else $s .= "$cmd\n";
     }
     $env = new SmanEnvManagerSelf(false, $instance->userPass);
-    foreach ($env->getShCmds() as $cmd) {
+    foreach ($env->_getShCmds() as $cmd) {
       if (is_array($cmd)) foreach ($cmd as $v) $s .= "$v\n";
       else $s .= "$cmd\n";
     }

@@ -2,15 +2,26 @@
 
 abstract class SmanInstaller {
 
-  protected $sshConnection, $scp, $sftp, $gitUrl, $user, $disable = false;
-  public $ssh;
+  protected $sshConnection, /*$scp, */$gitUrl, $user, $disable = false;
 
-  function __construct(Ssh2Connection $sshConnection) {
-    $this->sshConnection = $sshConnection;
-    $this->scp = new Ssh2Scp($sshConnection);
-    $this->sftp = new Ssh2Sftp($sshConnection);
-    $this->ssh = new Ssh2($sshConnection);
+  /**
+   * @var Ssh2ShellInterface
+   */
+  public $shell;
+
+  /**
+   * @var Ssh2SftpInterface
+   */
+  public $ftp;
+
+  function __construct() {
+    $this->ftp = $this->ftp();
+    $this->shell = $this->shell();
   }
+
+  abstract protected function ftp();
+  abstract protected function shell();
+  abstract protected function serverHost();
 
   function install() {
     $this->_install();
@@ -23,7 +34,7 @@ abstract class SmanInstaller {
 
   // ----------- sh commands generation -------------
 
-  function getShCmds() {
+  function _getShCmds() {
     if (!$this->disable) throw new Exception('You can get sh commands only in disabled class instance. See constructor');
     $this->install();
     return $this->shCmds;
@@ -33,7 +44,7 @@ abstract class SmanInstaller {
 
   protected function exec($cmd) {
     if ($this->disable) $this->shCmds[] = $cmd;
-    else return $this->ssh->exec($cmd);
+    else return $this->shell->exec($cmd);
   }
 
 

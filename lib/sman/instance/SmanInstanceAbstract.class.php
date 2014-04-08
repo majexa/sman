@@ -27,8 +27,9 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     $this->userPass = Misc::randString(7);
     $this->exec([
       "useradd -m -s /bin/bash -p `openssl passwd -1 {$this->userPass}` $user",
+      "echo '{$this->userPass}' > /home/$user/.pass",
     ]);
-    if (!$this->disable) SmanConfig::updateSubVar('userPasswords', $this->sshConnection->host, $this->userPass);
+    if (!$this->disable) SmanConfig::updateSubVar('userPasswords', $this->serverHost(), $this->userPass);
     LogWriter::str('userPasswords', $this->userPass, SMAN_PATH.'/logs');
     $this->exec([
       'apt-get -y install sudo',
@@ -109,8 +110,16 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     ]);
   }
 
-  function updateNginxIncludes() {
+  function installNginxFull() {
+    $this->installNginx();
+    $this->configNginx();
+    $this->exec('sudo /etc/init.d/nginx start');
+    if (!strstr($this->exec('ps aux | grep nginx', false), 'nginx: master process')) throw new Exception('Problems with installing nginx');
+  }
+
+  function configNginx() {
     $this->exec([
+      'cd /etc/nginx',
       'sed -i "s|^'. //
       '\s*include /etc/nginx/sites-enabled/\*;'. //
       '|'. //
