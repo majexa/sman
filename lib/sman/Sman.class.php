@@ -1,5 +1,12 @@
 <?php
-
+/*
+sudo apt-get -y purge nginx nginx-full nginx-common
+sudo sman instance local installNginxFull
+sudo sman instance local installPhp
+sudo sman env local createConfig june.majexa.ru
+~/ngn-env/ci/ci update
+ci test
+*/
 if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
 
 class Sman {

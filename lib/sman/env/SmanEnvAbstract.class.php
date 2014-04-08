@@ -38,6 +38,7 @@ abstract class SmanEnvAbstract extends SmanInstallerBase {
    * Создаёт стандартный конфиг для сервера
    */
   function createConfig($baseDomain) {
+    // auto vhost folders. look at PmServerConfigAbstract class
     $this->exec([
       "mkdir -p ~/ngn-env/config/nginx",
       "mkdir ~/ngn-env/config/nginx/static",
@@ -71,7 +72,10 @@ abstract class SmanEnvAbstract extends SmanInstallerBase {
       $pass = SmanConfig::getSubVar('userPasswords', $this->serverHost());
     }
     //$server = ['baseDomain' => $this->name.'.'.Config::getVar('baseDomain')];
-    $server = ['baseDomain' => $baseDomain];
+    $server = [
+      'baseDomain' => $baseDomain,
+      'nginxFastcgiPassUnixSocket' => true
+    ];
     $this->ftp->putContents('/home/user/ngn-env/config/server.php', FileVar::formatVar($server));
     $this->ftp->putContents('/home/user/ngn-env/config/database.php', <<<CODE
 <?php
