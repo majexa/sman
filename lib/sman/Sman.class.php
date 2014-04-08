@@ -4,26 +4,41 @@ if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
 
 class Sman {
 
-  function setup() {
-    if (($r = Cli::prompt('Enter git URL'))) SmanConfig::updateVar('git', $r);
-    if (($r = Cli::prompt('Enter bot email domain (2-nd level domain for this host)'))) SmanConfig::updateSubVar('botEmail', 'domain', $r);
-    if (($r = Cli::prompt('Enter DigitalOcean client ID'))) SmanConfig::updateSubVar('doceanAccess', 'client_id', $r);
-    if (($r = Cli::prompt('Enter DigitalOcean API key'))) SmanConfig::updateSubVar('doceanAccess', 'api_key', $r);
-    //if (($r = Cli::prompt('Enter DNS master host'))) SmanConfig::updateSubVar('servers', 'dnsMaster', $r);
+  function config() {
+    foreach ([
+      ['git', false, 'URL'],
+      ['botEmail', 'domain', 'Bot email domain'],
+      ['doceanAccess', 'client_id', 'DigitalOcean Client ID'],
+      ['doceanAccess', 'api_key', 'DigitalOcean API Key'],
+      //['servers', 'dnsMaster', 'DNS Master host']
+    ] as $v) {
+      $current = $v[1] === false ? SmanConfig::getVar($v[0], true) : SmanConfig::getSubVar($v[0], $v[1], false, true);
+      if (($r = Cli::prompt(($current ? 'Reset' : 'Enter')." {$v[2]} (press ENTER to skip)".($current ? "  [Current value: $current]" : '')))) {
+        $v[1] === false ? SmanConfig::updateVar($v[0], $r) : SmanConfig::updateSubVar($v[0], $v[1], $r);
+      }
+    }
+    if (($r = Cli::prompt("Input base domain: (press ENTER to skip)"))) {
+      FileVar::updateSubVar(NGN_ENV_PATH.'/config/server.php', 'baseDomain', $r);
+    }
   }
 
   /**
    * Создаёт установщик себя для голой ubuntu/debian
+   *
+   * @param string        manager|
    */
-  function genSelfInstaller() {
+  function pure($type) {
     $s = "# Install:\n";
     if (file_exists(NGN_ENV_PATH.'/config/server.php')) {
       $server = require NGN_ENV_PATH.'/config/server.php';
-      $s .= "# wget -O - http://sman.{$server['baseDomain']}/run.sh | bash\n#\n";
+      $install = "wget -O - http://sman.{$server['baseDomain']}/run.sh | bash";
     } else {
-      $s .= "# wget -O - http://hostname/run.sh | bash\n#\n";
+      $install = "wget -O - http://path/to/run.sh | bash";
     }
-    $instance = new SmanInstanceManagerSelf(false);
+    $s .= "# $install\n#\n";
+    $class = 'SmanInstance'.ucfirst($type).'Self';
+    /* @var SmanInstanceAbstract $instance */
+    $instance = new $class(false);
     foreach ($instance->getShCmds() as $cmd) {
       if (is_array($cmd)) foreach ($cmd as $v) $s .= "$v\n";
       else $s .= "$cmd\n";
@@ -38,13 +53,14 @@ class Sman {
     $s.= "./ci update\n";
     $s.= "echo 'run \"sman setup\"'\n";
     file_put_contents(SMAN_PATH.'/web/run.sh', $s);
-    print "Done.\n--\n$s";
+    print $s;
+    //print !empty($server) ? "Install: $install\n" : $s;
   }
 
   /**
    * Создаёт сервер, инсталлирует среду
    *
-   * @param string        projects|serverManager|dnsMaster|dnsSlave
+   * @param string        projects|manager|dnsMaster|dnsSlave
    * @param integer|null Уникальный идентификатор сервера
    */
   function create($type, $id = null) {
@@ -79,13 +95,6 @@ Root password: $rootPassword
 User password: $userPassword
 
 TEXT;
-  }
-
-  /**
-   * Выводит список серверов
-   */
-  function lst() {
-    print "* ".Tt()->enumDddd(Docean::get()->servers(), '$name.` - `.$ip_address', "\n* ")."\n";
   }
 
   /**

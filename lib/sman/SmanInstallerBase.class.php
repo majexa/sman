@@ -1,6 +1,6 @@
 <?php
 
-abstract class SmanInstallerDocean extends SmanInstaller {
+abstract class SmanInstallerBase extends SmanInstaller {
 
   protected $serverName;
 

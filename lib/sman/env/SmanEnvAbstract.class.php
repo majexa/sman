@@ -3,7 +3,7 @@
 /**
  * Environment installer
  */
-abstract class SmanEnvAbstract extends SmanInstallerDocean {
+abstract class SmanEnvAbstract extends SmanInstallerBase {
 
   static function getClass($name) {
     return 'SmanEnv'.ucfirst(SmanCore::serverType($name));

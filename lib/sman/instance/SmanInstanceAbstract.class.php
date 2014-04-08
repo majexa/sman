@@ -3,7 +3,7 @@
 /**
  * Instance installer
  */
-abstract class SmanInstanceAbstract extends SmanInstallerDocean {
+abstract class SmanInstanceAbstract extends SmanInstallerBase {
 
   /**
    * @param string Server Name

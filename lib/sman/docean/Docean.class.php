@@ -1,6 +1,6 @@
 <?php
 
-class Docean extends ObjectMapper {
+class Docean extends ObjectMapper implements SmanServers {
 
   // for autocomplete
   static function get() {
@@ -19,6 +19,10 @@ class Docean extends ObjectMapper {
 
   protected function getObject() {
     return $this->api;
+  }
+
+  function servers() {
+    return $this->api->servers();
   }
 
   function server($name, $strict = true) {
