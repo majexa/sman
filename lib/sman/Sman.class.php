@@ -1,11 +1,15 @@
 <?php
 /*
+
 sudo apt-get -y purge nginx nginx-full nginx-common
 sudo sman instance local installNginxFull
-sudo sman instance local installPhp
-sudo sman env local createConfig june.majexa.ru
+sudo sman instance local installPhpFull
+sman env local install
+sman env local createConfig june.majexa.ru
 ~/ngn-env/ci/ci update
-ci test
+pm localServer updateHosts
+ngn-test ... web
+
 */
 if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
 
@@ -24,7 +28,8 @@ class Sman {
         $v[1] === false ? SmanConfig::updateVar($v[0], $r) : SmanConfig::updateSubVar($v[0], $v[1], $r);
       }
     }
-    if (($r = Cli::prompt("Input base domain: (press ENTER to skip)"))) {
+    $current = Config::getSubVar(NGN_ENV_PATH.'/config/server.php', 'baseDomain', false, true);
+    if (($r = Cli::prompt("Input base domain: (press ENTER to skip)".($current ? "  [Current value: $current]" : '')))) {
       FileVar::updateSubVar(NGN_ENV_PATH.'/config/server.php', 'baseDomain', $r);
     }
   }
@@ -39,14 +44,15 @@ class Sman {
     if (file_exists(NGN_ENV_PATH.'/config/server.php')) {
       $server = require NGN_ENV_PATH.'/config/server.php';
       $install = "wget -O - http://sman.{$server['baseDomain']}/run.sh | bash";
-    } else {
+    }
+    else {
       $install = "wget -O - http://path/to/run.sh | bash";
     }
     $s .= "# $install\n#\n";
-    $class = 'SmanInstance'.ucfirst($type).'Self';//                                      [0 - pure]
+    $class = 'SmanInstance'.ucfirst($type).'Self'; //                                      [0 - pure]
     /* @var SmanInstanceAbstract $instance */
     $instance = new $class(false);
-    foreach ($instance->_getShCmds() as $cmd) {//                                         [1 - soft]
+    foreach ($instance->_getShCmds() as $cmd) { //                                         [1 - soft]
       if (is_array($cmd)) foreach ($cmd as $v) $s .= "$v\n";
       else $s .= "$cmd\n";
     }
@@ -55,10 +61,10 @@ class Sman {
       if (is_array($cmd)) foreach ($cmd as $v) $s .= "$v\n";
       else $s .= "$cmd\n";
     }
-    $s.= "cd ~/ngn-env/ci\n";
-    $s.= "chmod +x ci\n";
-    $s.= "./ci update\n"; // @todo ТУТ ПРОБЛЕМА
-    $s.= "echo 'run \"sman setup\"'\n";
+    $s .= "cd ~/ngn-env/ci\n";
+    $s .= "chmod +x ci\n";
+    $s .= "./ci update\n"; // @todo ТУТ ПРОБЛЕМА
+    $s .= "echo 'run \"sman setup\"'\n";
     file_put_contents(SMAN_PATH.'/web/run.sh', $s);
     print $s;
     //print !empty($server) ? "Install: $install\n" : $s;
@@ -198,5 +204,16 @@ TEXT;
   function env($serverName) {
     return new CliHelpResultClass(SmanEnvAbstract::getClass($serverName), 'env');
   }
+
+  /*
+  function uploadGitPublicKey() {
+    if (trim(`command -v sshpass >/dev/null && echo "y" || echo "n"`) == 'n') {
+      print `sudo apt-get -y install sshpass`;
+    }
+    $r = parse_url(SmanConfig::getVar('git'));
+    $r['pass'] = Cli::prompt('punk how you take it to the curb');
+    (new ShellSshKeyUploader(new ShellSshPasswordCmd($r)))->upload();
+  }
+  */
 
 }
