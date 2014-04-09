@@ -27,7 +27,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     $this->userPass = Misc::randString(7);
     $this->exec([
       "useradd -m -s /bin/bash -p `openssl passwd -1 {$this->userPass}` $user",
-      "echo '{$this->userPass}' > /home/$user/.pass",
+      "echo -n '{$this->userPass}' > /home/$user/.pass",
     ]);
     if (!$this->disable) SmanConfig::updateSubVar('userPasswords', $this->serverHost(), $this->userPass);
     LogWriter::str('userPasswords', $this->userPass, SMAN_PATH.'/logs');
@@ -187,9 +187,22 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
   protected function runTests() {
   }
 
-  protected function installMysql() {
-    $pass = '123';
-    $this->exec("debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password password $pass'", "debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password_again password $pass'", "apt-get -y install mysql-server");
+  function installMysql() {
+    if (file_exists('/home/user/ngn-env/config/database.php')) {
+      $pass = Config::getConstant('/home/user/ngn-env/config/database.php', 'DB_PASS');
+    }
+    elseif (file_exists('/home/user/.pass')) {
+      $pass = file_get_contents('/home/user/.pass');
+    }
+    else {
+      throw new Exception('pass not found');
+    }
+    throw new Exception('тут проблема');
+    $this->exec( //
+      "debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password password $pass'", //
+      "debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password_again password $pass'", //
+      "apt-get -y install mysql-server" //
+    );
   }
 
 }
