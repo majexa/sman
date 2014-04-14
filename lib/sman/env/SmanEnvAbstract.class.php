@@ -74,18 +74,20 @@ abstract class SmanEnvAbstract extends SmanInstallerBase {
     //$server = ['baseDomain' => $this->name.'.'.Config::getVar('baseDomain')];
     $server = [
       'baseDomain' => $baseDomain,
-      'nginxFastcgiPassUnixSocket' => true
+      'nginxFastcgiPassUnixSocket' => true,
+      'dbPass' => $pass
     ];
     $this->ftp->putContents('/home/user/ngn-env/config/server.php', FileVar::formatVar($server));
-    $this->ftp->putContents('/home/user/ngn-env/config/database.php', <<<CODE
-<?php
+    // setup common database config to whole server
+    $this->ftp->putContents('/home/user/ngn-env/config/database.php', '<?php
 
-setConstant('DB_HOST', 'localhost');
-setConstant('DB_USER', 'root');
-setConstant('DB_PASS', '$pass');
-setConstant('DB_LOGGING', false);
-setConstant('DB_NAME', PROJECT_KEY);
-CODE
+$server = require __DIR__."/server.php";
+setConstant("DB_HOST", $server["dbHost"]);
+setConstant("DB_USER", $server["dbUser"]);
+setConstant("DB_PASS", $server["dbPass"]);
+setConstant("DB_LOGGING", false);
+setConstant("DB_NAME", PROJECT_KEY);
+'
     );
   }
 

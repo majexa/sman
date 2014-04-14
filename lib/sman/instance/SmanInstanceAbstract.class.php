@@ -197,12 +197,12 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     else {
       throw new Exception('pass not found');
     }
-    throw new Exception('тут проблема');
-    $this->exec( //
-      "debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password password $pass'", //
-      "debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password_again password $pass'", //
-      "apt-get -y install mysql-server" //
-    );
+    //throw new Exception('тут проблема');
+    $this->exec([ //
+      "//debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password password $pass'", //
+      //"debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password_again password $pass'", //
+      //"apt-get -y install mysql-server" //
+    ]);
   }
 
 }
