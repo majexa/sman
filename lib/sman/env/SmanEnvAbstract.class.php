@@ -82,6 +82,8 @@ abstract class SmanEnvAbstract extends SmanInstallerBase {
     $this->ftp->putContents('/home/user/ngn-env/config/database.php', '<?php
 
 $server = require __DIR__."/server.php";
+if (empty($server["dbUser"])) $server["dbUser"] = "root";
+if (empty($server["dbHost"])) $server["dbHost"] = "127.0.0.1";
 setConstant("DB_HOST", $server["dbHost"]);
 setConstant("DB_USER", $server["dbUser"]);
 setConstant("DB_PASS", $server["dbPass"]);
