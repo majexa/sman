@@ -19,19 +19,27 @@ class Sman {
     foreach ([
       ['git', false, 'git URL'],
       ['botEmail', 'domain', 'Bot email domain'],
+      ['botEmail', 'user', 'Bot email user'],
       ['doceanAccess', 'client_id', 'DigitalOcean Client ID'],
       ['doceanAccess', 'api_key', 'DigitalOcean API Key'],
       //['servers', 'dnsMaster', 'DNS Master host']
     ] as $v) {
       $current = $v[1] === false ? SmanConfig::getVar($v[0], true) : SmanConfig::getSubVar($v[0], $v[1], false, true);
-      if (($r = Cli::prompt(($current ? 'Reset' : 'Enter')." {$v[2]} (press ENTER to skip)".($current ? "  [Current value: $current]" : '')))) {
+      if (($r = $this->prompt(($current ? 'Reset' : 'Enter'), $v[2], $current))) {
         $v[1] === false ? SmanConfig::updateVar($v[0], $r) : SmanConfig::updateSubVar($v[0], $v[1], $r);
       }
     }
-    $current = Config::getSubVar(NGN_ENV_PATH.'/config/server.php', 'baseDomain', false, true);
-    if (($r = Cli::prompt("Input base domain: (press ENTER to skip)".($current ? "  [Current value: $current]" : '')))) {
+    $server = FileVar::getVar(NGN_ENV_PATH.'/config/server.php');
+    if (($r = $this->prompt('Input', 'base domain', isset($server['baseDomain']) ? $server['baseDomain'] : null))) {
       FileVar::updateSubVar(NGN_ENV_PATH.'/config/server.php', 'baseDomain', $r);
     }
+  }
+
+  protected function prompt($action, $title, $current) {
+    return Cli::prompt( //
+      "$action $title: (press ENTER to skip)". //
+      ($current ? " [Current value: ".O::get('CliColors')->getColoredString($current, 'yellow')."]" : '') //
+    );
   }
 
   /**

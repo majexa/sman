@@ -37,6 +37,10 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     ]);
   }
 
+  function createMailBotUser() {
+    $this->exec("useradd -m -s /bin/bash bot");
+  }
+
   /**
    * mc, git-core
    */
@@ -131,19 +135,46 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     ]);
   }
 
-  // protected function
-
   function installRabbitmq() {
     $this->exec([
+      'wget http://pecl.php.net/get/amqp -O amqp.tar.gz',
+      'tar -zxvf amqp.tar.gz',
+      'cd amqp-1.4.0',
+      'phpize',
+      './configure --with-amqp',
+      'make',
+      'sudo make install'
+    ]);
+  }
+
+  function installRabbitmq_() {
+    // rabbitmq server
+    $this->exec([
       'cd /tmp',
-      'echo -e "deb http://www.rabbitmq.com/debian/ testing main" >> /etc/apt/sources.list',
+      'mkdir ngn',
+      'cd ngn',
+      'echo "deb http://www.rabbitmq.com/debian/ testing main" >> /etc/apt/sources.list',
       'wget http://www.rabbitmq.com/rabbitmq-signing-key-public.asc',
       'apt-key add rabbitmq-signing-key-public.asc',
       'apt-get update',
-      'apt-get install rabbitmq-server',
-      'pecl install amqp',
-      'echo -e "extension=amqp.so" > /etc/php5/conf.d/amqp.ini'
+      'apt-get -y install rabbitmq-server',
     ]);
+    // amqp php extension
+    $this->exec([
+      'apt-get -y install build-essential',
+      'cd /tmp/ngn',
+      'git clone https://github.com/alanxz/rabbitmq-c rabbitmq-c',
+      'cd rabbitmq-c',
+      'git clone https://github.com/alanxz/rabbitmq-codegen codegen',
+      'cp ./librabbitmq/amqp.h /usr/local/include/',
+      'cp ./librabbitmq/amqp_framing.h /usr/local/include/',
+      'cp ./librabbitmq/amqp_tcp_socket.h /usr/local/include/',
+      'apt-get -y install librabbitmq0',
+      'ln -s /usr/lib/librabbitmq.so.0 /usr/local/lib/librabbitmq.so',
+      'pecl install amqp',
+      'echo "extension=amqp.so" > /etc/php5/conf.d/amqp.ini'
+    ]);
+    $this->exec('rm -R /tmp/ngn');
   }
 
   protected function installPiwik() {
@@ -153,9 +184,10 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
    * postfix
    */
   function installMail() {
+    Misc::checkEmpty(Config::getSubVar('botEmail', 'domain'));
     print $this->exec([
-      'debconf-set-selections <<< "postfix postfix/mailname string localhost"',
-      'debconf-set-selections <<< "postfix postfix/main_mailer_type string \'Internet Site\'"',
+      'bash -c \'debconf-set-selections <<< "postfix postfix/mailname string localhost"\'',
+      'bash -c \'debconf-set-selections <<< "postfix postfix/main_mailer_type string \\"Internet Site\\""\'',
       //'export DEBIAN_FRONTEND=noninteractive',
       'apt-get -y install postfix',
       'postconf -e "home_mailbox = Maildir/"',

@@ -8,7 +8,7 @@ class DoceanServer {
   function __construct($name) {
     $this->name = $name;
     $this->docean = Docean::get();
-    $this->botEmailUser = 'user';
+    $this->botEmailUser = Config::getSubVar('botEmail', 'user', true);
     $this->botEmailCheck = $this->botEmailUser.'@localhost';
     $this->botEmailFolder = ($this->botEmailUser == 'root' ? '/root' : '/home/'.$this->botEmailUser).'/Maildir/new';
   }
