@@ -231,9 +231,30 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     }
     //throw new Exception('тут проблема');
     $this->exec([ //
-      "//debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password password $pass'", //
-      //"debconf-set-selections <<< 'mysql-server-5.5 mysql-server/root_password_again password $pass'", //
-      //"apt-get -y install mysql-server" //
+      'bash -c \'debconf-set-selections <<< "server-5.5 mysql-server/root_password password '.$pass.'"\'', //
+      'bash -c \'debconf-set-selections <<< "server-5.5 mysql-server/root_password_again password '.$pass.'"\'', //
+      "apt-get -y install mysql-server" //
+    ]);
+  }
+
+  function installNodejs() {
+    $this->exec([ //
+      'apt-get -y install python-software-properties python g++ make',
+      'add-apt-repository -y ppa:chris-lea/node.js',
+      'apt-get update',
+      'apt-get -y install nodejs'
+    ]);
+  }
+
+  function installPhantomjs() {
+    $this->installNodejs();
+    $this->exec([
+      'cd /usr/local/share',
+      'wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.7-linux-x86_64.tar.bz2',
+      'tar xjf phantomjs-1.9.7-linux-x86_64.tar.bz2',
+      'ln -s /usr/local/share/phantomjs-1.9.7-linux-x86_64/bin/phantomjs /usr/local/share/phantomjs',
+      'ln -s /usr/local/share/phantomjs-1.9.7-linux-x86_64/bin/phantomjs /usr/local/bin/phantomjs',
+      'ln -s /usr/local/share/phantomjs-1.9.7-linux-x86_64/bin/phantomjs /usr/bin/phantomjs'
     ]);
   }
 
