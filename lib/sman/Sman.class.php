@@ -8,7 +8,7 @@ sman env local install
 sman env local createConfig june.majexa.ru
 ~/ngn-env/ci/ci update
 pm localServer updateHosts
-ngn-test ... web
+tst ... web
 
 */
 if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
