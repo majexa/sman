@@ -127,7 +127,6 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
       'sed -i "s|^'. //
       '\s*include /etc/nginx/sites-enabled/\*;'. //
       '|'. //
-      '\tserver_names_hash_bucket_size 64;\\n'. //
       '\tinclude /home/user/ngn-env/config/nginx/static/*;\\n'. //
       '\tinclude /home/user/ngn-env/config/nginx/projects/*;\\n'. //
       '\tinclude /home/user/ngn-env/config/nginx/system/*;'. //
@@ -147,35 +146,6 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     ]);
   }
 
-  function installRabbitmq_() {
-    // rabbitmq server
-    $this->exec([
-      'cd /tmp',
-      'mkdir ngn',
-      'cd ngn',
-      'echo "deb http://www.rabbitmq.com/debian/ testing main" >> /etc/apt/sources.list',
-      'wget http://www.rabbitmq.com/rabbitmq-signing-key-public.asc',
-      'apt-key add rabbitmq-signing-key-public.asc',
-      'apt-get update',
-      'apt-get -y install rabbitmq-server',
-    ]);
-    // amqp php extension
-    $this->exec([
-      'apt-get -y install build-essential',
-      'cd /tmp/ngn',
-      'git clone https://github.com/alanxz/rabbitmq-c rabbitmq-c',
-      'cd rabbitmq-c',
-      'git clone https://github.com/alanxz/rabbitmq-codegen codegen',
-      'cp ./librabbitmq/amqp.h /usr/local/include/',
-      'cp ./librabbitmq/amqp_framing.h /usr/local/include/',
-      'cp ./librabbitmq/amqp_tcp_socket.h /usr/local/include/',
-      'apt-get -y install librabbitmq0',
-      'ln -s /usr/lib/librabbitmq.so.0 /usr/local/lib/librabbitmq.so',
-      'pecl install amqp',
-      'echo "extension=amqp.so" > /etc/php5/conf.d/amqp.ini'
-    ]);
-    $this->exec('rm -R /tmp/ngn');
-  }
 
   protected function installPiwik() {
   }
