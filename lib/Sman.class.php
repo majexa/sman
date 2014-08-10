@@ -197,7 +197,7 @@ TEXT;
    * Интерфейс для установки программных пакетов на сервер
    *
    * @param $serverName
-   * @return CliResultClass
+   * @return CliHelpResultClass
    */
   function instance($serverName) {
     return new CliHelpResultClass(SmanInstanceAbstract::getClass($serverName), 'instance');
@@ -207,7 +207,7 @@ TEXT;
    * Интерфейс для установки пакетов ngn-среды на сервер
    *
    * @param $serverName
-   * @return CliResultClass
+   * @return CliHelpResultClass
    */
   function env($serverName) {
     return new CliHelpResultClass(SmanEnvAbstract::getClass($serverName), 'env');
