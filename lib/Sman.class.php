@@ -13,6 +13,9 @@ tst ... web
 */
 if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
 
+/**
+ * Управление серверами
+ */
 class Sman {
 
   function config() {
