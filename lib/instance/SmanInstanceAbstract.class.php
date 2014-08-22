@@ -73,18 +73,21 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     ]);
   }
 
+  /**
+   * installPhpBasic + installPhpAdvanced
+   */
   function installPhp() {
     $this->installPhpBasic();
     $this->installPhpAdvanced();
   }
 
   /**
-   * php5.4, phpUnit; extensions: pear, curl, fpm, memcached
+   * installPhp + fpm, memcached + config fpm
    */
   function installPhpWeb() {
     $this->installPhp();
     print $this->exec([
-      'apt-get -y install php5-memcached php5-fpm',
+      'apt-get -y install memcached php5-memcached php5-fpm',
     ]);
     print $this->exec([
       'sed -i "s|www-data|user|g" /etc/php5/fpm/pool.d/www.conf',
@@ -93,15 +96,19 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
   }
 
   /**
-   * php5.4, phpUnit, memcached, imagemagick; extensions: pear, curl, memcached, fpm, gd, mysql
+   * installPhpWeb + mysql, gd, imagemagick
    */
   function installPhpFull() {
     $this->installPhpWeb();
     print $this->exec([
       'apt-get -y install php5-gd php5-mysql',
-      'apt-get -y install memcached',
       'apt-get -y install imagemagick',
     ]);
+  }
+
+  function configPhp() {
+    file_put_contents('/etc/php5/fpm/php.ini', file_get_contents('/etc/php5/fpm/php.ini'));
+    //die2();
   }
 
   function installNginx() {
