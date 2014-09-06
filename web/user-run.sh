@@ -1,3 +1,4 @@
+# wget -O - http://sman./user-run.sh | bash
 mkdir ~/ngn-env
 cd ~/ngn-env
 git="https://github.com/masted"
