@@ -200,20 +200,20 @@ TEXT;
    * Интерфейс для установки программных пакетов на сервер
    *
    * @param $serverName
-   * @return CliHelpResultClass
+   * @return CliAccessResultClass
    */
   function instance($serverName) {
-    return new CliHelpResultClass(SmanInstanceAbstract::getClass($serverName), 'instance');
+    return new CliAccessResultClass(SmanInstanceAbstract::getClass($serverName), 'instance');
   }
 
   /**
    * Интерфейс для установки пакетов ngn-среды на сервер
    *
    * @param $serverName
-   * @return CliHelpResultClass
+   * @return CliAccessResultClass
    */
   function env($serverName) {
-    return new CliHelpResultClass(SmanEnvAbstract::getClass($serverName), 'env');
+    return new CliAccessResultClass(SmanEnvAbstract::getClass($serverName), 'env');
   }
 
   /*

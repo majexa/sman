@@ -1,1 +1,1 @@
-php ../run/run.php "new CliHelpArgsSingle('$*', new Sman)" NGN_ENV_PATH/sman/init.php
+php ../run/run.php "new CliAccessArgsSingle('$*', new Sman)" NGN_ENV_PATH/sman/init.php
