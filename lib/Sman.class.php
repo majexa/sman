@@ -82,10 +82,9 @@ class Sman {
   }
 
   /**
-   * Создаёт сервер, инсталлирует среду
-   *
-   * @param string        projects|manager|dnsMaster|dnsSlave
-   * @param integer|null Уникальный идентификатор сервера
+   * @param string $type projects|manager|dnsMaster|dnsSlave
+   * @param null $id
+   * @return integer|null $id Уникальный идентификатор сервера
    */
   function create($type, $id = null) {
     if (!$id) $id = self::lastId($type) + 1;
