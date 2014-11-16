@@ -142,15 +142,32 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
   }
 
   function installRabbitmq() {
-    $this->exec([
+    print $this->exec([
+      'rm -rf temp',
+      'mkdir temp',
+      'cd temp',
+      //
+      'wget https://github.com/alanxz/rabbitmq-c/releases/download/v0.5.1/rabbitmq-c-0.5.1.tar.gz',
+      'tar -zxvf rabbitmq-c-0.5.1.tar.gz',
+      'cd rabbitmq-c-0.5.1',
+      './configure',
+      'make',
+      'sudo make install',
+      //
+      'cd ..',
+      //
       'wget http://pecl.php.net/get/amqp -O amqp.tar.gz',
       'tar -zxvf amqp.tar.gz',
       'cd amqp-1.4.0',
       'phpize',
       './configure --with-amqp',
       'make',
-      'sudo make install'
+      'sudo make install',
+      //
+      'sudo echo "extension=amqp.so" | sudo tee /etc/php5/mods-available/amqp.ini',
+      'sudo ln -s ../mods-available/amqp.ini /etc/php5/conf.d/20-amqp.ini',
     ]);
+
   }
 
 
