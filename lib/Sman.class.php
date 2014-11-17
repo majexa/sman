@@ -14,7 +14,7 @@ tst ... web
 if (!defined('SMAN_PATH')) throw new Exception('sman not initialized');
 
 /**
- * Управление серверами
+ * Управление серверами на площадке DigitalOcean
  */
 class Sman {
 
@@ -48,7 +48,8 @@ class Sman {
   /**
    * Создаёт установщик себя для голой ubuntu/debian
    *
-   * @param string        manager|
+   * @param $type
+   * @throws Exception
    */
   function pure($type) {
     $s = "# Install:\n";
@@ -82,14 +83,27 @@ class Sman {
   }
 
   /**
+   * Создаёт сервер
+   *
    * @param string $type projects|manager|dnsMaster|dnsSlave
    * @param null $id
    * @return integer|null $id Уникальный идентификатор сервера
    */
   function create($type, $id = null) {
-    if (!$id) $id = self::lastId($type) + 1;
-    $name = $type.$id;
-    (new DoceanServer($name))->create();
+    if (!SmanConfig::getVar('baseDomain', true)) {
+      $baseDomain = Cli::prompt('Input server base domain');
+      SmanConfig::updateVar('baseDomain', $baseDomain);
+    }
+    if (!SmanConfig::getVar('servers', true)) {
+      $dnsMaster = Cli::prompt('Input Ngn DnsMaster server hostname');
+      SmanConfig::updateVar('servers', [
+        'dnsMaster' => $dnsMaster
+      ]);
+    }
+    //if (!$id) $id = self::lastId($type) + 1;
+    //$name = $type.$id;
+    //(new DoceanServer($name))->create();
+    $name = 'projects2';
     $this->createZone($name);
     $this->createInstance($name);
     return $name;
@@ -173,7 +187,7 @@ TEXT;
    * @param $name
    */
   protected function deleteZone($name) {
-    $domain = $name.'.'.Config::getVar('baseDomain');
+    $domain = $name.'.'.SmanConfig::getVar('baseDomain');
     $cmd = str_replace('"', '\\"', '(new DnsServer)->deleteZone(["'.$domain.'", "*.'.$domain.'"])');
     try {
       print $this->dnsSsh()->exec(Cli::addRunPaths($cmd, 'NGN_ENV_PATH/dns-server/lib'));
@@ -182,7 +196,7 @@ TEXT;
   }
 
   protected function _createZone($name, $host) {
-    $domain = $name.'.'.Config::getVar('baseDomain');
+    $domain = $name.'.'.SmanConfig::getVar('baseDomain');
     $cmd = str_replace('"', '\\"', '(new DnsServer)->replaceZone(["'.$domain.'", "*.'.$domain.'"], "'.$host.'")');
     print $this->dnsSsh()->exec(Cli::addRunPaths($cmd, 'NGN_ENV_PATH/dns-server/lib'));
     return $domain;

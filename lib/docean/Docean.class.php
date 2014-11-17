@@ -1,5 +1,15 @@
 <?php
 
+abstract class ObjectMapper {
+
+  abstract protected function getObject();
+
+  function __call($method, $args) {
+    return call_user_func_array([$this->getObject(), $method], $args);
+  }
+
+}
+
 class Docean extends ObjectMapper implements SmanServers {
 
   // for autocomplete

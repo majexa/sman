@@ -7,7 +7,7 @@ class DoceanApi {
 
   function api($uri, array $data = []) {
     $data = array_merge($data, Config::getVar('doceanAccess'));
-    $r = (new Curl)->get("https://api.digitalocean.com/$uri?".http_build_query($data));
+    $r = (new Curl)->get("https://api.digitalocean.com/v1/$uri?".http_build_query($data));
     $r = json_decode($r, true);
     if ($r['status'] == 'ERROR') throw new Exception('DigitalOcean: '.$r['error_message']);
     if ($this->outputResult) print_r($r);
@@ -19,8 +19,7 @@ class DoceanApi {
     output("Creating server '$name'");
     return $this->api('droplets/new', array_merge([
       'size_id'   => 66,
-      'image_id'  => 1505447, // ubuntu 12.04 x64
-      //'image_id'  => 1505527, // ubuntu 12.04 x32
+      'image_id'  => Arr::getValueByKey($this->api('images')['images'], 'slug', 'ubuntu-10-04-x64')['id'],
       'region_id' => 5, // Amsterdam: 5, US: 1, 4
       'name'      => $name
     ], $opts));

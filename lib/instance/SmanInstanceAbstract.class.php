@@ -167,9 +167,35 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
       'sudo echo "extension=amqp.so" | sudo tee /etc/php5/mods-available/amqp.ini',
       'sudo ln -s ../mods-available/amqp.ini /etc/php5/conf.d/20-amqp.ini',
     ]);
-
   }
 
+  function installPhpSsh2() {
+    print $this->exec([
+      'rm -rf temp',
+      'mkdir temp',
+      'cd temp',
+      // http://www.libssh2.org/
+      'wget http://www.libssh2.org/download/libssh2-1.4.3.tar.gz',
+      'tar vxzf libssh2-1.4.3.tar.gz',
+      'cd libssh2-1.4.3',
+      './configure',
+      'make',
+      'sudo make install',
+      //
+      'cd ..',
+      // http://pecl.php.net/package/ssh2
+      'wget http://pecl.php.net/get/ssh2-0.12.tgz',
+      'tar vxzf ssh2-0.12.tgz',
+      'cd ssh2-0.12',
+      'phpize',
+      './configure --with-ssh2',
+      'make',
+      'sudo make install',
+      //
+      'sudo echo "extension=ssh2.so" | sudo tee /etc/php5/mods-available/ssh2.ini',
+      'sudo ln -s ../mods-available/ssh2.ini /etc/php5/conf.d/20-ssh2.ini',
+    ]);
+  }
 
   protected function installPiwik() {
   }
