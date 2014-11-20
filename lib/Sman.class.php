@@ -90,7 +90,9 @@ class Sman {
    * @return integer|null $id Уникальный идентификатор сервера
    */
   function create($type, $id = null) {
-    if (!SmanConfig::getVar('baseDomain', true)) {
+    $name = 'projects2';
+
+/*    if (!SmanConfig::getVar('baseDomain', true)) {
       $baseDomain = Cli::prompt('Input server base domain');
       SmanConfig::updateVar('baseDomain', $baseDomain);
     }
@@ -103,8 +105,7 @@ class Sman {
     //if (!$id) $id = self::lastId($type) + 1;
     //$name = $type.$id;
     //(new DoceanServer($name))->create();
-    $name = 'projects2';
-    $this->createZone($name);
+    $this->createZone($name);*/
     $this->createInstance($name);
     return $name;
   }
@@ -190,7 +191,7 @@ TEXT;
     $domain = $name.'.'.SmanConfig::getVar('baseDomain');
     $cmd = str_replace('"', '\\"', '(new DnsServer)->deleteZone(["'.$domain.'", "*.'.$domain.'"])');
     try {
-      print $this->dnsSsh()->exec(Cli::addRunPaths($cmd, 'NGN_ENV_PATH/dns-server/lib'));
+      print $this->dnsSsh()->exec(Cli::addRunPaths($cmd, 'dnss/lib'));
     } catch (Exception $e) {
     }
   }
@@ -198,7 +199,7 @@ TEXT;
   protected function _createZone($name, $host) {
     $domain = $name.'.'.SmanConfig::getVar('baseDomain');
     $cmd = str_replace('"', '\\"', '(new DnsServer)->replaceZone(["'.$domain.'", "*.'.$domain.'"], "'.$host.'")');
-    print $this->dnsSsh()->exec(Cli::addRunPaths($cmd, 'NGN_ENV_PATH/dns-server/lib'));
+    print $this->dnsSsh()->exec(Cli::addRunPaths($cmd, 'dnss/lib'));
     return $domain;
   }
 

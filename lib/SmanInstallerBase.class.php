@@ -18,6 +18,7 @@ abstract class SmanInstallerBase extends SmanInstaller {
 
   protected function ftp() {
     if ($this->serverName === false) return false;
+    // die2(get_class($this->sshConnection));
     return $this->serverName == 'local' ? new Ssh2SftpLocal : new Ssh2Sftp($this->sshConnection);
   }
 

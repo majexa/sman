@@ -9,6 +9,15 @@ abstract class SmanEnvAbstract extends SmanInstallerBase {
     return 'SmanEnv'.ucfirst(SmanCore::serverType($name));
   }
 
+  /**
+   * @param $name
+   * @return SmanEnvAbstract
+   */
+  static function get($name) {
+    $class = self::getClass($name);
+    return new $class($name);
+  }
+
   protected $user = 'user';
   protected $name;
 

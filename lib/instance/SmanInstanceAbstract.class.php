@@ -13,6 +13,15 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     return 'SmanInstance'.ucfirst(SmanCore::serverType($name));
   }
 
+  /**
+   * @param $name
+   * @return SmanInstanceAbstract
+   */
+  static function get($name) {
+    $class = self::getClass($name);
+    return new $class($name);
+  }
+
   protected $user = 'root';
 
   function install() {
@@ -56,7 +65,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     print $this->exec([
       'apt-get -y install python-software-properties',
       'apt-get update',
-      'add-apt-repository --yes ppa:ondrej/php5-oldstable',
+      'add-apt-repository --yes ppa:ondrej/php5',
       'apt-get update',
       'apt-get -y install php5-cli',
     ]);
@@ -225,7 +234,10 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
   }
 
   protected function createBaseZone() {
-    $this->ei->cmd('dnsMaster', Cli::formatRunCmd("(new DnsServer)->createZone('{$this->baseDomain()}', '{$this->ei->api->server($this->serverName)['ip_address']}')", 'NGN_ENV_PATH/dns-server/lib'));
+    $this->ei->cmd('dnsMaster', Cli::formatRunCmd( //
+      "(new DnsServer)->createZone('{$this->baseDomain()}', ". //
+      "'{$this->ei->api->server($this->serverName)['ip_address']}')", //
+      'dnss/lib'));
   }
 
   /**
@@ -233,7 +245,9 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
    */
   function removeDns() {
     $this->ei->removeSshKey($this->serverName, 'dnsMaster', 'user');
-    $this->ei->cmd('dnsMaster', Cli::formatRunCmd("(new DnsServer)->deleteZone('{$this->baseDomain()}')", 'NGN_ENV_PATH/dns-server/lib'));
+    $this->ei->cmd('dnsMaster', Cli::formatRunCmd( //
+      "(new DnsServer)->deleteZone('{$this->baseDomain()}')", //
+      'dnss/lib'));
   }
 
   protected function runTests() {
