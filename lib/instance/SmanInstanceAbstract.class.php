@@ -75,7 +75,6 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     print $this->exec([
       'apt-get -y install php5-curl php5-dev php-pear',
     ]);
-    //print $this->exec('apt-get -y install libssh2-1-dev libssh2-php');
     print $this->exec([
       'pear channel-discover pear.phpunit.de',
       'pear install phpunit/PHPUnit',
@@ -113,11 +112,6 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
       'apt-get -y install php5-gd php5-mysql',
       'apt-get -y install imagemagick',
     ]);
-  }
-
-  function configPhp() {
-    file_put_contents('/etc/php5/fpm/php.ini', file_get_contents('/etc/php5/fpm/php.ini'));
-    //die2();
   }
 
   function installNginx() {
@@ -168,13 +162,20 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
       'wget http://pecl.php.net/get/amqp -O amqp.tar.gz',
       'tar -zxvf amqp.tar.gz',
       'cd amqp-1.4.0',
-      'phpize',
+      'phpize5',
       './configure --with-amqp',
       'make',
       'sudo make install',
       //
       'sudo echo "extension=amqp.so" | sudo tee /etc/php5/mods-available/amqp.ini',
-      'sudo ln -s ../mods-available/amqp.ini /etc/php5/conf.d/20-amqp.ini',
+    ]);
+    $this->phpModSymlink('amqp');
+  }
+
+  protected function phpModSymlink($name) {
+    print $this->exec([
+      'sudo ln -sf /etc/php5/mods-available/'.$name.'.ini /etc/php5/cli/conf.d/20-'.$name.'.ini',
+      'sudo ln -sf /etc/php5/mods-available/'.$name.'.ini /etc/php5/fpm/conf.d/20-'.$name.'.ini'
     ]);
   }
 
@@ -196,14 +197,14 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
       'wget http://pecl.php.net/get/ssh2-0.12.tgz',
       'tar vxzf ssh2-0.12.tgz',
       'cd ssh2-0.12',
-      'phpize',
+      'phpize5',
       './configure --with-ssh2',
       'make',
       'sudo make install',
       //
       'sudo echo "extension=ssh2.so" | sudo tee /etc/php5/mods-available/ssh2.ini',
-      'sudo ln -s ../mods-available/ssh2.ini /etc/php5/conf.d/20-ssh2.ini',
     ]);
+    $this->phpModSymlink('ssh2');
   }
 
   protected function installPiwik() {
@@ -226,7 +227,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
   }
 
   /**
-   * Создаёт DNS-записить базового хоста сервера
+   * Создаёт DNS-запись базового хоста сервера
    */
   function installDns() {
     $this->ei->addSshKey($this->serverName, 'dnsMaster', 'user');
@@ -241,7 +242,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
   }
 
   /**
-   * Удаляет DNS-записить базового хоста сервера
+   * Удаляет DNS-запись базового хоста сервера
    */
   function removeDns() {
     $this->ei->removeSshKey($this->serverName, 'dnsMaster', 'user');

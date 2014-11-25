@@ -213,7 +213,7 @@ TEXT;
   /**
    * Интерфейс для установки программных пакетов на сервер
    *
-   * @param $serverName
+   * @param $serverName local|...
    * @return CliAccessResultClass
    */
   function instance($serverName) {
@@ -221,9 +221,9 @@ TEXT;
   }
 
   /**
-   * Интерфейс для установки пакетов ngn-среды на сервер
+   * Интерфейс для установки пакетов Ngn-env на сервер
    *
-   * @param $serverName
+   * @param $serverName local|...
    * @return CliAccessResultClass
    */
   function env($serverName) {
