@@ -6,8 +6,9 @@
 abstract class SmanInstanceAbstract extends SmanInstallerBase {
 
   /**
-   * @param string Server Name
+   * @param string $name Server Name
    * @return string
+   * @throws Exception
    */
   static function getClass($name) {
     return 'SmanInstance'.ucfirst(SmanCore::serverType($name));
@@ -226,30 +227,30 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     ]);
   }
 
-  /**
-   * Создаёт DNS-запись базового хоста сервера
-   */
-  function installDns() {
-    $this->ei->addSshKey($this->serverName, 'dnsMaster', 'user');
-    $this->createBaseZone();
-  }
-
-  protected function createBaseZone() {
-    $this->ei->cmd('dnsMaster', Cli::formatRunCmd( //
-      "(new DnsServer)->createZone('{$this->baseDomain()}', ". //
-      "'{$this->ei->api->server($this->serverName)['ip_address']}')", //
-      'dnss/lib'));
-  }
-
-  /**
-   * Удаляет DNS-запись базового хоста сервера
-   */
-  function removeDns() {
-    $this->ei->removeSshKey($this->serverName, 'dnsMaster', 'user');
-    $this->ei->cmd('dnsMaster', Cli::formatRunCmd( //
-      "(new DnsServer)->deleteZone('{$this->baseDomain()}')", //
-      'dnss/lib'));
-  }
+//  /**
+//   * Создаёт DNS-запись базового хоста сервера
+//   */
+//  function installDns() {
+//    $this->ei->addSshKey($this->serverName, 'dnsMaster', 'user');
+//    $this->createBaseZone();
+//  }
+//
+//  protected function createBaseZone() {
+//    $this->ei->cmd('dnsMaster', Cli::formatRunCmd( //
+//      "(new DnsServer)->createZone('{$this->baseDomain()}', ". //
+//      "'{$this->ei->api->server($this->serverName)['ip_address']}')", //
+//      'dnss/lib'));
+//  }
+//
+//  /**
+//   * Удаляет DNS-запись базового хоста сервера
+//   */
+//  function removeDns() {
+//    $this->ei->removeSshKey($this->serverName, 'dnsMaster', 'user');
+//    $this->ei->cmd('dnsMaster', Cli::formatRunCmd( //
+//      "(new DnsServer)->deleteZone('{$this->baseDomain()}')", //
+//      'dnss/lib'));
+//  }
 
   protected function runTests() {
   }
@@ -262,9 +263,8 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
       $pass = file_get_contents('/home/user/.pass');
     }
     else {
-      throw new Exception('pass not found');
+      throw new Exception('Database password not found');
     }
-    //throw new Exception('тут проблема');
     $this->exec([ //
       'bash -c \'debconf-set-selections <<< "server-5.5 mysql-server/root_password password '.$pass.'"\'', //
       'bash -c \'debconf-set-selections <<< "server-5.5 mysql-server/root_password_again password '.$pass.'"\'', //
