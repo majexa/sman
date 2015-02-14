@@ -293,4 +293,58 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     ]);
   }
 
+  function installFfmpeg() {
+    $this->exec([
+      'sudo apt-get update',
+      'sudo apt-get -y --force-yes install autoconf automake build-essential libass-dev libfreetype6-dev libgpac-dev libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libxcb1-dev libxcb-shm0-dev libxcb-xfixes0-dev pkg-config texi2html zlib1g-dev',
+      'mkdir ~/ffmpeg_sources',
+      // yasm
+      'cd ~/ffmpeg_sources',
+      'wget http://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz',
+      'tar xzvf yasm-1.3.0.tar.gz',
+      'cd yasm-1.3.0',
+      './configure --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin"',
+      'make',
+      'make install',
+      'make distclean',
+      // libx264
+      'sudo apt-get -y install libx264-dev',
+      // libmp3lame
+      'sudo apt-get -y install libmp3lame-dev',
+      // libvpx
+      'cd ~/ffmpeg_sources',
+      'wget http://webm.googlecode.com/files/libvpx-v1.3.0.tar.bz2',
+      'tar xjvf libvpx-v1.3.0.tar.bz2',
+      'cd libvpx-v1.3.0',
+      'PATH="$HOME/bin:$PATH" ./configure --prefix="$HOME/ffmpeg_build" --disable-examples',
+      'PATH="$HOME/bin:$PATH" make',
+      'make install',
+      'make clean',
+      // ffmpeg
+      'cd ~/ffmpeg_sources',
+      'wget http://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2',
+      'tar xjvf ffmpeg-snapshot.tar.bz2',
+      'cd ffmpeg',
+      'PATH="$HOME/bin:$PATH" PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure \
+  --prefix="$HOME/ffmpeg_build" \
+  --extra-cflags="-I$HOME/ffmpeg_build/include" \
+  --extra-ldflags="-L$HOME/ffmpeg_build/lib" \
+  --bindir="$HOME/bin" \
+  --enable-gpl \
+  --enable-libass \
+  --enable-libfreetype \
+  --enable-libmp3lame \
+  --enable-libtheora \
+  --enable-libvorbis \
+  --enable-libvpx \
+  --enable-libx264 \
+  --enable-nonfree',
+      'PATH="$HOME/bin:$PATH" make',
+      'make install',
+      'make distclean',
+      'hash -r'
+
+    ]);
+  }
+
 }
