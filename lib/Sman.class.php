@@ -52,15 +52,15 @@ class Sman {
    * @throws Exception
    */
   function pure($type) {
-    $s = "# Install:\n";
-    if (file_exists(NGN_ENV_PATH.'/config/server.php')) {
-      $server = require NGN_ENV_PATH.'/config/server.php';
-      $install = "wget -O - http://sman.{$server['baseDomain']}/run.sh | bash";
-    }
-    else {
-      $install = "wget -O - http://path/to/run.sh | bash";
-    }
-    $s .= "# $install\n#\n";
+    $s = "# Ngn-env installation script for server type '$type':\n";
+//    if (file_exists(NGN_ENV_PATH.'/config/server.php')) {
+//      $server = require NGN_ENV_PATH.'/config/server.php';
+//      $install = "wget -O - http://sman.{$server['baseDomain']}/run.sh | bash";
+//    }
+//    else {
+//      $install = "wget -O - http://path/to/run.sh | bash";
+//    }
+//    $s .= "# $install\n#\n";
     $class = 'SmanInstance'.ucfirst($type).'Self'; //                                      [0 - pure]
     /* @var SmanInstanceAbstract $instance */
     $instance = new $class(false);
@@ -75,8 +75,9 @@ class Sman {
     }
     $s .= "cd ~/ngn-env/ci\n";
     $s .= "chmod +x ci\n";
-    $s .= "./ci update\n"; // @todo ТУТ ПРОБЛЕМА
-    $s .= "echo 'run \"sman setup\"'\n";
+    $s .= "sudo ./ci _updateBin\n";
+    $s .= "./ci update\n";
+    //$s .= "echo 'run \"sman setup\"'\n";
     file_put_contents(SMAN_PATH.'/web/run.sh', $s);
     print $s;
     //print !empty($server) ? "Install: $install\n" : $s;

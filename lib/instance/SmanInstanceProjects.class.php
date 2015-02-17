@@ -9,9 +9,9 @@ class SmanInstanceProjects extends SmanInstanceAbstract {
 
   protected function _install() {
     $this->installNginxFull();
-    //$this->installPhpFull();
-    //$this->installMysql(); @todo install Mysql
-    //$this->installMail(); @todo install Mail
+    $this->installPhpFull();
+    $this->installMysql();
+    $this->installMail();
     //$this->installRabbitmq(); @todo install Rabbitmq
   }
 

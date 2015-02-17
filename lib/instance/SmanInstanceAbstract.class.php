@@ -129,7 +129,10 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     $this->installNginx();
     $this->configNginx();
     $this->exec('sudo /etc/init.d/nginx start');
-    if (!strstr($this->exec('ps aux | grep nginx', false), 'nginx: master process')) throw new Exception('Problems with installing nginx');
+    $r = $this->exec('ps aux | grep nginx');
+    if (!$this->disable) {
+      if (!strstr($r, 'nginx: master process')) throw new Exception('Problems with installing nginx');
+    }
   }
 
   function configNginx() {
