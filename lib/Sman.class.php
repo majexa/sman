@@ -41,7 +41,7 @@ class Sman {
   protected function prompt($action, $title, $current) {
     return Cli::prompt( //
       "$action $title: (press ENTER to skip)". //
-      ($current ? " [Current value: ".O::get('CliColors')->getColoredString($current, 'yellow')."]" : '') //
+      ($current ? " [Current value: ".CliColors::colored($current, 'yellow')."]" : '') //
     );
   }
 
