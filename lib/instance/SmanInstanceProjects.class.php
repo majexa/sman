@@ -15,8 +15,4 @@ class SmanInstanceProjects extends SmanInstanceAbstract {
     //$this->installRabbitmq(); @todo install Rabbitmq
   }
 
-  function installAsd() {
-    print "\nASD\n";
-  }
-
 }

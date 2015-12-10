@@ -217,7 +217,7 @@ TEXT;
    * @param $serverName local|...
    * @return CliAccessResultClass
    */
-  function instance($serverName) {
+  function instance($serverName = 'local') {
     return new CliAccessResultClass(SmanInstanceAbstract::getClass($serverName), 'instance');
   }
 

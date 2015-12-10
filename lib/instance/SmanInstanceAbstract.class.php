@@ -296,6 +296,11 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     ]);
   }
 
+  function installUglify() {
+    $this->exec('npm install -g uglify-js');
+    $this->exec('npm install -g uglifycss');
+  }
+
   function installFfmpeg() {
     $this->exec([
       'sudo apt-get update',
