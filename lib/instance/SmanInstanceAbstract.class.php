@@ -259,11 +259,11 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
   }
 
   function installMysql() {
-    if (file_exists('/home/user/ngn-env/config/database.php')) {
-      $pass = Config::getConstant('/home/user/ngn-env/config/database.php', 'DB_PASS');
+    if (file_exists(NGN_ENV_PATH.'/config/database.php')) {
+      $pass = Config::getConstant(NGN_ENV_PATH.'/config/database.php', 'DB_PASS');
     }
-    elseif (file_exists('/home/user/.pass')) {
-      $pass = file_get_contents('/home/user/.pass');
+    elseif (file_exists(dirname(NGN_ENV_PATH).'/.pass')) {
+      $pass = file_get_contents(dirname(NGN_ENV_PATH).'/.pass');
     }
     else {
       throw new Exception('Database password not found');
