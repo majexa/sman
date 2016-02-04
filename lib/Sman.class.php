@@ -53,14 +53,6 @@ class Sman {
    */
   function pure($type) {
     $s = "# Ngn-env installation script for server type '$type':\n";
-//    if (file_exists(NGN_ENV_PATH.'/config/server.php')) {
-//      $server = require NGN_ENV_PATH.'/config/server.php';
-//      $install = "wget -O - http://sman.{$server['baseDomain']}/run.sh | bash";
-//    }
-//    else {
-//      $install = "wget -O - http://path/to/run.sh | bash";
-//    }
-//    $s .= "# $install\n#\n";
     $class = 'SmanInstance'.ucfirst($type).'Self'; //                                      [0 - pure]
     /* @var SmanInstanceAbstract $instance */
     $instance = new $class(false);
@@ -77,10 +69,8 @@ class Sman {
     $s .= "chmod +x ci\n";
     $s .= "sudo ./ci _updateBin\n";
     $s .= "./ci update\n";
-    //$s .= "echo 'run \"sman setup\"'\n";
-    file_put_contents(SMAN_PATH.'/web/run.sh', $s);
+    file_put_contents(SMAN_PATH.'/web/run.sh', str_replace($instance->userPass, 'CHANGE_PASSWORD', $s));
     print $s;
-    //print !empty($server) ? "Install: $install\n" : $s;
   }
 
   /**
