@@ -204,7 +204,7 @@ TEXT;
   /**
    * Интерфейс для установки программных пакетов на сервер
    *
-   * @param $serverName local|...
+   * @param string $serverName local|...
    * @return CliAccessResultClass
    */
   function instance($serverName = 'local') {

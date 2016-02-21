@@ -64,7 +64,8 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
 
   function installPhpBasic() {
     print $this->exec([
-      'apt-get -y install python-software-properties',
+      'apt-get -y install python-software-properties software-properties-common',
+      'apt-get install -y language-pack-en-base && export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8',
       'apt-get update',
       'add-apt-repository --yes ppa:ondrej/php5',
       'apt-get update',
