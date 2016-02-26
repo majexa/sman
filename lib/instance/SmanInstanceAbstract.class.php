@@ -151,6 +151,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
 
   function installRabbitmq() {
     print $this->exec([
+      'sudo apt-get -y install rabbitmq-server',
       'rm -rf temp',
       'mkdir temp',
       'cd temp',
@@ -164,9 +165,9 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
       //
       'cd ..',
       //
-      'wget http://pecl.php.net/get/amqp -O amqp.tar.gz',
-      'tar -zxvf amqp.tar.gz',
-      'cd amqp-1.4.0',
+      'wget http://pecl.php.net/get/amqp-1.6.0.tgz',
+      'tar -zxvf amqp-1.6.0.tgz',
+      'cd amqp-1.6.0',
       'phpize5',
       './configure --with-amqp',
       'make',
