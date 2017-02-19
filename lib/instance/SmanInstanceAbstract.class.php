@@ -67,7 +67,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
       'apt-get -y install python-software-properties software-properties-common',
       'apt-get install -y language-pack-en-base && export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8',
       'apt-get update',
-      'add-apt-repository --yes ppa:ondrej/php5',
+      'add-apt-repository --yes ppa:ondrej/php5.6',
       'apt-get update',
       'apt-get -y install php5-cli',
     ]);
@@ -75,7 +75,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
 
   function installPhpAdvanced() {
     print $this->exec([
-      'apt-get -y install php5-curl php5-dev php-pear',
+      'apt-get -y install php5.6-curl php5.6-dev php-pear',
     ]);
     print $this->exec([
       'pear channel-discover pear.phpunit.de',
@@ -97,7 +97,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
   function installPhpWeb() {
     $this->installPhp();
     print $this->exec([
-      'apt-get -y install memcached php5-memcached php5-fpm',
+      'apt-get -y install memcached php5.6-memcached php5.6-fpm',
     ]);
     print $this->exec([
       'sed -i "s|www-data|user|g" /etc/php5/fpm/pool.d/www.conf',
@@ -111,7 +111,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
   function installPhpFull() {
     $this->installPhpWeb();
     print $this->exec([
-      'apt-get -y install php5-gd php5-mysql',
+      'apt-get -y install php5.6-gd php5.6-mysql',
       'apt-get -y install imagemagick',
     ]);
   }
@@ -220,7 +220,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
    * postfix
    */
   function installMail() {
-    Misc::checkEmpty(Config::getSubVar('botEmail', 'domain'));
+    if (!Config::getSubVar('botEmail', 'domain', false, true)) return;
     print $this->exec([
       'bash -c \'debconf-set-selections <<< "postfix postfix/mailname string localhost"\'',
       'bash -c \'debconf-set-selections <<< "postfix postfix/main_mailer_type string \\"Internet Site\\""\'',
