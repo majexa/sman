@@ -45,23 +45,10 @@ class Sman {
     );
   }
 
-  /**
-   * Создаёт установщик себя для голой ubuntu/debian
-   *
-   * @param $type
-   * @throws Exception
-   */
-  function pure($type) {
-    $s = "# Ngn-env installation script for server type '$type':\n";
-    $class = 'SmanInstance'.ucfirst($type).'Self'; //                                      [0 - pure]
-    /* @var SmanInstanceAbstract $instance */
-    $instance = new $class(false);
-    foreach ($instance->_getShCmds() as $cmd) { //                                         [1 - soft]
-      if (is_array($cmd)) foreach ($cmd as $v) $s .= "$v\n";
-      else $s .= "$cmd\n";
-    }
+  function getInstallScript(SmanInstanceAbstract $instance) {
+    $s = '';
     $env = new SmanEnvManagerSelf(false, $instance->userPass);
-    foreach ($env->_getShCmds() as $cmd) {
+    foreach ($env->getShCmds() as $cmd) {
       if (is_array($cmd)) foreach ($cmd as $v) $s .= "$v\n";
       else $s .= "$cmd\n";
     }
@@ -69,7 +56,50 @@ class Sman {
     $s .= "chmod +x ci\n";
     $s .= "sudo ./ci _updateBin\n";
     $s .= "./ci update\n";
-    file_put_contents(SMAN_PATH.'/web/run.sh', str_replace($instance->userPass, 'CHANGE_PASSWORD', $s));
+    return $s;
+  }
+
+  /**
+   * Создаёт установщик себя для голой ubuntu/debian
+   *
+   * @param $type
+   */
+  function pure($type) {
+    $class = 'SmanInstance'.ucfirst($type).'Self'; //                                      [0 - pure]
+    $instance = new $class(false);
+    $s = "# Ngn-env installation script for server type '$type':\n";
+    foreach ($cmds = $instance->getShCmds() as &$cmd) {
+      $s .= "$cmd\n";
+    }
+    /* @var $instance SmanEnvAbstract */
+    $class = 'SmanEnv'.ucfirst($type);
+    $instance = new $class(false);
+    foreach ($cmds = $instance->getShCmds() as &$cmd) {
+      $s .= "$cmd\n";
+    }
+    print $s;
+  }
+
+  /**
+   * Создаёт Dockerfile
+   *
+   * @param $type
+   */
+  function docker($type) {
+    /* @var $instance SmanInstanceAbstract */
+    $class = 'SmanInstance'.ucfirst($type).'Self'; //                                      [0 - pure]
+    $instance = new $class(false);
+    $instance->dockerBaseImage = true;
+    $s = "FROM phusion/baseimage\n\n";
+    foreach ($cmds = $instance->getShCmds() as &$cmd) {
+      $s .= "RUN $cmd\n";
+    }
+    /* @var $instance SmanEnvAbstract */
+    $class = 'SmanEnv'.ucfirst($type);
+    $instance = new $class(false);
+    foreach ($cmds = $instance->getShCmds() as &$cmd) {
+      $s .= "RUN $cmd\n";
+    }
     print $s;
   }
 

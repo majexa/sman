@@ -34,7 +34,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
 
   protected function createUser() {
     $user = 'user';
-    $this->userPass = Misc::randString(7);
+    $this->userPass = 'CHANGE_IT';//Misc::randString(7);
     $this->exec([
       "useradd -m -s /bin/bash -p `openssl passwd -1 {$this->userPass}` $user",
       "echo -n '{$this->userPass}' > /home/$user/.pass",
@@ -57,6 +57,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
   function installCore() {
     print $this->exec([
       'apt-get update',
+      'locale-gen "ru_RU.UTF-8"', // for ubuntu 16.04
       'apt-get -y install mc git-core',
     ]);
     $this->createUser();
@@ -67,20 +68,23 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
       'apt-get -y install python-software-properties software-properties-common',
       'apt-get install -y language-pack-en-base && export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8',
       'apt-get update',
-      'add-apt-repository --yes ppa:ondrej/php5.6',
+      'add-apt-repository --yes ppa:ondrej/php',
       'apt-get update',
-      'apt-get -y install php5-cli',
+      'apt-get -y install php5.6 php5.6-mbstring',
+      'sed -i "s/short_open_tag = Off/short_open_tag = On/g" /etc/php/5.6/cli/php.ini',
+      'sed -i "s/display_errors = Off/display_errors = On/g" /etc/php/5.6/cli/php.ini',
     ]);
   }
 
   function installPhpAdvanced() {
     print $this->exec([
-      'apt-get -y install php5.6-curl php5.6-dev php-pear',
+      //'apt-get -y install php5.6-curl php5.6-dev',
+      'apt-get -y install php5.6-curl',
     ]);
-    print $this->exec([
-      'pear channel-discover pear.phpunit.de',
-      'pear install phpunit/PHPUnit',
-    ]);
+//    print $this->exec([
+//      'pear channel-discover pear.phpunit.de',
+//      'pear install phpunit/PHPUnit',
+//    ]);
   }
 
   /**
@@ -98,10 +102,12 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     $this->installPhp();
     print $this->exec([
       'apt-get -y install memcached php5.6-memcached php5.6-fpm',
+      'sed -i "s/short_open_tag = Off/short_open_tag = On/g" /etc/php/5.6/fpm/php.ini',
+      'sed -i "s/display_errors = Off/display_errors = On/g" /etc/php/5.6/fpm/php.ini',
     ]);
     print $this->exec([
-      'sed -i "s|www-data|user|g" /etc/php5/fpm/pool.d/www.conf',
-      '/etc/init.d/php5-fpm restart'
+      'sed -i "s|www-data|user|g" /etc/php/5.6/fpm/pool.d/www.conf',
+      '/etc/init.d/php5.6-fpm restart'
     ]);
   }
 
@@ -116,37 +122,35 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
     ]);
   }
 
+  public $dockerBaseImage = false;
+
   function installNginx() {
-    $this->exec([
+    $r = [];
+    if (!$this->dockerBaseImage) {
+      $r[] = 'apt-get -y purge apache2';
+    }
+    $r = array_merge($r, [
       'apt-get -y install nginx',
-      'cd /etc/nginx',
-      'sed -i "s/^\s*#.*$//g" nginx.conf',
-      'sed -i "/^\s*$/d" nginx.conf',
-      'sed -i "s|www-data|user|g" nginx.conf',
+      'sed -i "s/^\s*#.*$//g" /etc/nginx/nginx.conf',
+      'sed -i "/^\s*$/d" /etc/nginx/nginx.conf',
+      'sed -i "s|www-data|user|g" /etc/nginx/nginx.conf',
+      'sed -i "s|^'. //
+      '\s*include /etc/nginx/sites-enabled/\*;'. //
+      '|'. //
+      '\tinclude /home/user/ngn-env/config/nginx/all.conf;\\n"'
     ]);
+    $this->exec($r);
   }
 
   function installNginxFull() {
     $this->installNginx();
-    $this->configNginx();
     $this->exec('sudo /etc/init.d/nginx start');
     $r = $this->exec('ps aux | grep nginx');
     if (!$this->disable) {
-      if (!strstr($r, 'nginx: master process')) throw new Exception('Problems with installing nginx');
+      if (!strstr($r, 'nginx: master process')) {
+        throw new Exception('Problems with installing nginx');
+      }
     }
-  }
-
-  function configNginx() {
-    $this->exec([
-      'cd /etc/nginx',
-      'sed -i "s|^'. //
-      '\s*include /etc/nginx/sites-enabled/\*;'. //
-      '|'. //
-      '\tinclude /home/user/ngn-env/config/nginx/static/*;\\n'. //
-      '\tinclude /home/user/ngn-env/config/nginx/projects/*;\\n'. //
-      '\tinclude /home/user/ngn-env/config/nginx/system/*;'. //
-      '|g" nginx.conf'
-    ]);
   }
 
   function installRabbitmq() {
@@ -275,6 +279,7 @@ abstract class SmanInstanceAbstract extends SmanInstallerBase {
       'bash -c \'debconf-set-selections <<< "server-5.5 mysql-server/root_password_again password '.$pass.'"\'', //
       "apt-get -y install mysql-server" //
     ]);
+    $this->exec('/etc/mysql/conf.d/disable_strict_mode.cnf < '.'echo "[mysqld]\nsql_mode=IGNORE_SPACE,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"');
   }
 
   function installNodejs() {

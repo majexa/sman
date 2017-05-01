@@ -34,10 +34,25 @@ abstract class SmanInstaller {
 
   // ----------- sh commands generation -------------
 
-  function _getShCmds() {
-    if (!$this->disable) throw new Exception('You can get sh commands only in disabled class instance. See constructor');
+  protected function _getShCmds() {
+    if (!$this->disable) {
+      throw new Exception('You can get sh commands only in disabled class instance. See constructor');
+    }
     $this->install();
     return $this->shCmds;
+  }
+
+  function getShCmds() {
+    $r = [];
+    foreach ($this->_getShCmds() as $cmd) {
+      if (is_array($cmd)) {
+        foreach ($cmd as $v) $r[] = $v;
+      }
+      else {
+        $r[] = $cmd;
+      }
+    }
+    return $r;
   }
 
   protected $shCmds = [];

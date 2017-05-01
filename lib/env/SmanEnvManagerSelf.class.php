@@ -11,8 +11,13 @@ class SmanEnvManagerSelf extends SmanEnvAbstract {
 
   function _install() {
     $this->exec('su user');
-    $this->cloneRepos([['ngn', 'dev'], 'ci', 'run', 'sman', 'smon']);
+    $this->cloneRepos(['ngn', 'ci', 'issue', 'run']);
+    print $this->exec([
+      'git clone https://github.com/mootools/mootools-core.git',
+      'git clone https://github.com/mootools/mootools-more.git'
+    ]);
     /*
+     *
     $this->exec([
       "mkdir -p ~/ngn-env/config/nginx",
       "mkdir ~/ngn-env/config/nginxProjects",
