@@ -38,7 +38,13 @@ mkdir ~/ngn-env
 mkdir ~/ngn-env/logs
 cd ~/ngn-env
 git clone https://github.com/majexa/ngn.git
+git clone https://github.com/majexa/issue.git
 git clone https://github.com/majexa/ci.git
 git clone https://github.com/majexa/run.git
-git clone https://github.com/majexa/pm.git
 git clone https://github.com/majexa/scripts.git
+git clone https://github.com/majexa/pm.git
+git clone https://github.com/majexa/dummyProject.git
+git clone https://github.com/majexa/tst.git
+git clone https://github.com/mootools/mootools-core.git
+git clone https://github.com/mootools/mootools-more.git
+cd ~/ngn-env/ci && ./ci _updateBin
